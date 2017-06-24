@@ -1,0 +1,115 @@
+\chapter{Architectural Overview}
+\label{chapter:archi}
+With a good understanding of basic concepts of the tehnology used we can go foward and
+talk about the architectural of the entire system. I will talk separetly the two apps.
+
+
+\section{Call App}
+\label{sec:callapp}
+\fig[height=0.5\textheight]{src/img/callApp.png}{img:call-app}{Call App}
+Call App is the part of the system which main ocupation is the social interaction between
+the robot users and their relatives seen as clients users, but you can also have this
+between robots users or clients users. The big system is represented in \labelindexref{Figure}{img:call-app}.
+Let's start talking about the entire workflow of calling, but firstly
+we will use some notation: Alice for the client or robot that is starting the call and Bob for the client or robot reciving the
+call. If Alice wants to call Bob she cand do that only if he is online. If Bob is online than Alice send a message
+different from normal messages telling Bob that she wants to start a call. Now Bob can refuse the call and send back to
+Alice a reject message and then both stops for having a call or he can accept the call and send back to Alice a message
+telling that he accept the call. When Alice recive the message she create a RTC offer package (that include some
+basic networking information about Alice and maybe some ICE candidates) and send it to Bob, in the same she set 
+her local description with this offer description and she starts to gather ICE candidates and send them to 
+Bob when she finds them. Bob recive the RTC offer , set his remote description with this offer description, and creates an
+RTC answer that has almost the same information as the offer, set this answer as his local description
+and send it to Alice, in the same time he starts to gather ICE candidates and send them to Alice.
+Alice recive the RTC answer and set it as remote description. After some ICE candidates changes between Alice and
+Bob if they do not find any matches for a RTC connection they will closed it. If they found they will go to connection
+established state and they will start to transmit audio/video data. They are tree types of connection posible.
+First one if Alice and Bob are in the same network or both have public ips they cand make a direct connection (r-c.1).
+Second one if Alice or Bob are under a different NAT network they can make a direct connection with the help of a STUN Server
+or they comunicate through a common TURN server (r-c.2 adn r-c.3). Third one if Alice and Bob are under a different NAT
+network and they do not have a common TURN server accesible but the servers are accesible between them they cand make
+a connection trought two servers (r-c.4). At one moment if Alice or Bob wants to end the call they send a stop message, After
+both close the connection. A perfect workflow is represented in \labelindexref{Figure}{img:call-AB1}.
+\fig[height=0.5\textheight]{src/img/ABCall.png}{img:call-AB1}{Alice-Bob call}
+
+\subsection{Robots}
+\label{sub-sec:callApp-robots}
+
+The robots have the webpage application implemented in the hmi_bridge ROS package that is part of
+the big project ENRICHME, so it does need any connection to frontend server for taking the html or
+JavaScript scripts. It only makes a connection using SOCKET.IO to the backend server called in the 
+\labelindexref{Figure}{img:call-app} r.1. This connection authentificate the robot to the
+server and announce the others users that is online and it can have a video call. Trough this connection
+the robots can recive events like when a user go online or offline, recive its contacts list, recive
+particulary information about some users. Some other two importants thinks that goes trough this connection
+are the messages and the informaton about starting a call. First the messages, the robot can send them trough
+r.1, if the other client or robot is online it will recive the message trough its r.1 or c.3 connection, if is
+offline than the message will be keep in the MongoDB database on the backend server (or in some specialised MongoDB
+database servers) and the recive users can request them lately trough REST API or SOCKET.IO connection. All the messages
+are keep in database, so the users cand see them lately. For the chat part the robots see their ROS parametre fro language
+and makes the right keyboard for the user. Secondly the call part, the robots use their r.1 for transmmiting 
+a call request or to respond a reciving call, and for all the other messages related to the call app, except
+audio/video data. You cand send audio/video over the r.1 connection but will have a bad performance because it
+used TCP not UDP and also it always go trough the server. Some difference between robots and normal clients are
+that robots do not used the camera so the video is taken trough a ROS topic for a RGB camera and you can not add
+connection on the robot because of the type of users that we have on this aprt of application.
+
+\subsection{Backend Server}
+\label{sub-sec:callApp-backend}
+The Backend Server offer a REST API and SOCKET.IO connections. The REST API offer services like
+creating a new user, adding new contacts to the contacts list of an user, basics information about
+a user, authentification for users, old messages between users, contacts list. The SOCKET.IO connections
+are used for sending normal messages between users or special messages needed to make RTC connection
+between users and to keep an online/offline track of the users. In my implementation the MongoDB
+database is also on the backend server, but if the system can be implemented with the database
+on another server or on multiple servers agregate for more stability and failure response. Because of
+the online/offline feature implemented in SOCKET.IO this system is limited at only one backend sever.
+Changing this feature in MongoDB database but making more a pooling from the clients and robots will
+incrase the scability of the backend server, but also the will incrase the bandwidth used and
+decrease performance when the system has less number of users than 40000. Because this number will
+not be reach in the project ENRICHME I used this type of architectural that makes the implementation
+more easy to understand and developing. The backend server run on two ports 80 and 443. I will discus
+the details in the next subsections.
+
+
+\subsection{Clients and Frontend Server}
+\label{sub-sec:callApp-clients}
+Because only clients use the frontend server I chose to talk about them togheter. The clients make
+a request to the frontend server for the html and JavaScript scripts (c.1) and get a them as
+response (c.2) and after that they make the SOCKET.IO connection with the backend server (c.3).
+I made the design of the page in only one html file and in more JavaScript scripts so the users
+will have the sensation of using an app not a webpage, and also for the performance, because after
+the first request the clients will not request anything more from the frontend server. This design and
+the fact that the project does not have a big number users the performance is high. If there it need to
+implement the system with less cost we can fusion the frontend server and the backend server without 
+cost to performance too high. Because browsers let webcam and microphone share only over secure connections
+or locahost inscure connection (more for testing) it is a must to have a ssl certificate for the
+frontend servers. Because of same origin policy and security issues for browsers also the backend
+server need a certificate and that is why the backend server is running on two ports 80 for the robots
+that are using an locahost webpage and 443 for the clients.
+
+
+\subsection{STUN/TURN servers}
+\label{sub-sec:callApp-stun-turn}
+STUN/TURN servers are used for making connections between users that transmit video/audion
+data. Because of some policy of firewalls or proxy is best to have more of this types of servers.
+I used on made by me on the amazon coud system and a public one, but free, server from numb.viagenie.ca.
+The role of STUN is that the clients can discover their network information about them if they are
+under a NAT network. The TURN servers come in used when users can not make a direct connection and they
+react as a relay server for their data.
+
+\section{News App}
+\label{sec:newsapp}
+\fig[height=0.5\textheight]{src/img/newsApp.png}{img:news-app}{News App}
+\labelindexref{Figure}{img:news-app}.
+The news app is a news agregator which takes news from different newspapers websites and
+show them to the user in a nice format, with the option to be read by the robot. Because
+it is not posible anymore to take an rss feed with the same origin policy implemented in
+browsers I used an internet API call rss2json.com that takes rss feed you want and transform
+it in a JSONP format that can bypass this problem. The architecture is simple for this app.
+You have the newspapers web sites that are publishing rss feed, that also have different
+feeds for different categories. The rss2json.com API server, where you send your API KEY
+with the rss feed url and the number of news, is your providers of JSONP formated news.
+The robots recive the JSONP and show the news to the users with the option to be read loud
+by them. Users also have the option to change the categories of news they want and even the
+newspapers.

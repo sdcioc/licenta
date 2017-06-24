@@ -1,0 +1,184 @@
+\chapter{Basic Concepts}
+\label{chapter:basic}
+In the previous chapter I presented a short introduction of the ENRICHME project and subjects of work.
+Before I present a more detailed description of the main goals and the implementation of them I would like
+to discuss about the basic conecepts of working with robots and of the tehnologies and programing languages used.
+
+
+\section{Theoretical Background}
+\label{sec:tbkg}
+
+To begin with, I will make a description of the theory behind my work. This includes
+presenting the robot, the protocols used for real time comunication, taking news from the news sites
+and some security basic browser security.
+
+\subsection{Heart Rate}
+\label{sub-sec:tbkg-heartrate}
+
+
+
+\subsection{WebRTC}
+\label{sub-sec:tbkg-webRTC}
+WebRTC (Web Real-Time Communication) \cite{bergkvist2012webrtc} is a open-source project
+that does not need plugins to be used on browsers. It has a collection of communications
+protocols and APIs (application programming interfaces) that enable real-time
+communication between peers.
+That are two distinct APIs C++ API (fore browser developers) and Web API
+(for web developers, javascript API).
+I used the second one because is more portable
+between diferent types of systems.
+Even if WebRTC allow you to do file transfer, chat or desktop sharing 
+in my project is necesarly only the video coferencing feature used.
+For this to work you need a STUN server \cite{mahy2003network} and 
+for some networks a TURN server \cite{mahy2010traversal}.
+The tehnology used for creating the connexion peer-to-peer is represented
+by the ICE \cite{rosenberg2010interactive}.
+For transmiting the audio and video data webRTC use RTP (Real-Time Transport Portocol).
+
+
+\subsection{RSS 2.0 Feed}
+\label{sub-sec:tbkg-rss}
+RSS 2.0 (Really Simple Syndication) \cite{board2014rss} is know as a tpe of web feed \cite{downing2008web}.
+A web feed (news feed) is a data format to provide informations which frequently change their contents.
+It create a plublisher-subscribers system.The publisher create a web feed and the users subscribe to it.
+Mostly the rss feed is used for news media to send micro-news to their customers. with this tehnology you can
+create a news agregator where you have multiple rss feeds from different sites and you filter them for your users.
+They can see a short description to the news, and after that they can have the option to go to the entire news
+on the parent site. \\
+There are two types of web feed most used: rss feed and atom feed. I used rss feed because is implemented by most
+of the news sites and I wanted a big base of news. Because of the browsers same origin policy (\labelindexref{Section}{sub-sec:tbkg-sameorigin})
+ I had to use an API that transform rss feed in jsonp.
+
+
+\subsection{Same Origin Policy}
+\label{sub-sec:tbkg-sameorigin}
+Same Origin Policy \cite{network10same} is a concept used in web application security model. In browsers which respect this policy
+you are not allowed to use data in scripts from pages that do not have the same origin. This policy must be respect so you will not have
+malicious code running in your browser or your webpage. Origin is defined as concatanation of
+the protocol used, hostname and port of a website. You can bypass this restriction by using the cross-origin communication
+with JSONP \cite{ozses2009cross}.
+
+% ROS section
+\section{ROS}
+\label{sec:ros}
+
+\subsection{ROS-Topics}
+\label{sub-sec:ros-topics}
+\subsection{ROS-Publishers}
+\label{sub-sec:ros-publisher}
+\subsection{ROS-Subscribers}
+\label{sub-sec:ros-subscribers}
+
+
+\section{JavaScript}
+\label{sec:javascript}
+"JavaScript is an interpreted programing language with object-oriented (OO)
+capabilities. Syntactically, the core JavaScript language resembles C, C++,
+and Java, with programing constructs such as the if statement, the while loop,
+and the \&\& operator. The similary end with this syntactic resemblance, however.
+Javascript is a loosely typed language, which means that variables do not need
+to have a type specified. Objects in JavaScript map property names to arbitrary property
+values. In this way, they are more like hash tables or associative arrays(in Perl) than
+they are like structs (in C) or objects (in C++ or Java). The OO inheritance mechanism
+og JavaScript is prototype-based like of the little-known language Self. This is quite
+different from inheritance in C++ abd Java. Like Perl, JavaScript is an interpreted
+language, and it draws inspiration from Perl in a number of areas, such as its regular-expression
+and array-handling features" \cite{flanagan2006javascript} \\
+I used JavaScript in my project as the frontend language , but also as backend of the authentication and
+signal sever. JavaScript is an easy to use programing language and it has more features and developing
+than php. Another feature is that is more client-side than php. In the next subsections I will present
+some framework used in my developing.
+
+
+\subsection{JQuery}
+\label{sub-sec:javascript-jquery}
+JQuery is a JavaScript library which make thinks like HTML (Hyper Text Makeup Language)
+document traversal and manipulation, event handling, animation, and Ajax more easy-to-use.
+It is compatible with most of browsers and also it has behind it a big comunity. I used
+Jquery because it make the developing of websites fast and easy to understand by outher
+developers, but some parts of the code was done in pure JavaScript.
+
+
+\subsection{SOCKET.IO}
+\label{sub-sec:javascript-socket}
+SOCKET.IO is a JavaScript library (frontend and backend APIs) used for making
+realiable real-time web application. You used it for making a connexion beetween
+the webpage given by the webserver to the backend server, mostly for message from
+backend server. It can use two methods. The first one used websockets that makes
+things fast and friendly with network bandwidth. Second it used pooling that is the
+clasic way to ask the server from time to time if it has something to send to you.
+\subsection{Sweet Alert 2}
+\label{sub-sec:javascript-swalert}
+Sweet Alert 2 is JavaScript library and also a css file, which make the alerts from
+the browser customizable. We need this library because the application is mostly
+used by old people we need to have alerts that have bigger text and are more center
+in the webpage. Also for the call part you cand have multiple option for responding
+the alert.
+
+
+\subsection{Node.js}
+\label{sub-sec:javascript-node}
+Node.js is open-source JavaScript run-time environment that allow to write server-side
+JavaScript code and it is saw as on of the fundamental elements of "JavaScript everywere"
+paradigm. This make the client-side code and server-side code to be write in the same
+programing language that makes it more easy-to-understand for both parts. I used it
+for the server-side of my web application. I used also some extra library with it like
+SOSCKET.IO, JWTOKEN and some paradimgs like REST. Node.js is a fast as performance and
+also as time of developing, and because is JavaScript there is easy for other developers
+to use.
+
+
+\subsection{Roslibjs}
+\label{sub-sec:javascript-roslib}
+Roslibjs is the standard JavaScript library for interacting with ROS systems from
+a browser. It connects with rosbridge trough WebSockets and has an API that cand let
+you do things like publishing, subscribing, calling services and most of the essential ROS
+functionality. Because a big part of my project is the web application in a browser which 
+run on a system with ROS I had to use as my only way to comunicate with ROS and other parts
+of the big project
+
+\section{Python}
+\label{sec:python}
+"
+Python is a general-purpose, high-level programming language whose design philosophy emphasizes code readability.
+Python's syntax allows programmers to express concepts in fewer lines of code than would be possible in languages
+such as C, and the language provides constructs intended to enable clear programs on both a small and large
+scale.
+Python supports multiple programming paradigms, including object-oriented, imperative and functional programming
+styles. It features a fully dynamic type system and automatic memory management, similar to that of Scheme, Ruby,
+Perl and Tclm and has a large and comprehensive standard library.
+Like other dynamic languages, Python is often used as a scripting language, but is also used in a wide range of
+non-scripting contexts. Using third-party tools, Python code can be packaged into standalone executable programs.
+Python interpreters are available for many operating systems.
+
+CPython, the reference implementation of Python, is free and open source software and has a community-based
+development model, as do nearly all of its alternative implementations. CPython is managed by the non-profit Python
+Software Foundation.
+" \cite{van2007python}
+\subsection{Rospy}
+\label{sub-sec:python-rospy}
+Rospy is a Python client library that offer an API for interacting with ROS systems.
+It allows you to do interface with topics, services and parameters. The design of rospy
+is very easy for programers to use and take a less time in developing. This makes rospy
+a very good aproach for prototyping in ROS. Some of the ROS tools are made with rospy.
+
+
+\section{MongoDB}
+\label{sec:mongo}
+MongoDB \cite{chodorow2013mongodb} is a document-oriented and general-purpose database. I used it because
+its documents are in fact BSONs (similar to JSONs) which are very easy to use in JavaScript and Python.
+Also MongoDB is know to be a scalable database, so it makes easy implementation of
+the chat part, where scalability is a must. On the server-side I used it for keeping
+the user credentials, informations, chat messages and connections list, on the robot-side
+for keeping the news preferences in newspapers and news categories of the user. Because I use Node.js,
+but also Python, I had to use some libraries, that I will present next.
+\subsection{PyMongo}
+\label{sub-sec:mongo-py}
+PyMongo is a Python distribution that make a connexion between Pyhton and MongoDB. It is easy to use by
+developers and easy to understand. Also you can transform data recived from the database in dictionaries
+in Pyhton.
+\subsection{MongoDB Node.js Driver}
+\label{sub-sec:mongo-node}
+For Node.js we have an official MongoDB driver that provides both callback and promise interaction.
+This driver is easy-to-use and easy-to-understand by all MongoDB users, because it use almost the
+the same interface.
