@@ -19,6 +19,82 @@ and some security basic browser security.
 
 \subsection{WebRTC}
 \label{sub-sec:tbkg-webRTC}
+	Web Real-Time Communication allows browsers share and exchange information in real time operating by a peer-to-peer communication. This gave to web developers the opportunity to 
+assemble real-time multimedia application without proprietary plug-ins. It extends the web browsing model. To set up and manage good and well grounded communication channel between web browsers,  the World Wide Web Consortium (W3C) and the Internet Engineering Task Force (IETF) are together defining the Java Script APIs (Application Programming Interfaces), the standard HTML5 tags, and the underlying communication protocols. Running on any device through secure access to the input peripherals, is the standardisation goal of WebRTC. 
+
+Web Architecture 
+
+The web architecture is founded on a client-server paradigm. The browsers send an HTTP request for content to the web server and the server answer with the informations that was demanded. The resources given by a server are correlated with an entity known by a URI or URL. Moreover, the server can set the JavaScript code in the HTML page it send back to the client. Users can interact with the code by user interface and browsers can interact with the code by using standard JavaScript APIs. 
+
+WebRTC Architecture
+WebRTC introduces the peer-to-peer communication system between browsers and in this way it expands the client-server semantics. The most common WebRTC model extract its ingenuity from 
+SIP (Session Initiation Protocol) Trapezoid (RFC3261) where both  browsers are running a web application downloaded from a different web server. To set up and put a stop to the exchange of information there are used singling messages which are transpired by HTTP or WebSocket protocol through web servers that can modify, translate, or manage them. Being considered a part of the application, the signalling between browser and server is not standardised in WebRTC. Moreover, a peer connection permits to the data to move along the browsers independent of servers. The two web servers can communicate using a standard signaling protocol such as SIP or Jingle. In WebRTC, the trapezoid transforms into a Triangle when both browsers are running the same web application. 
+
+WebRTC in the Browser 
+Through the standardised WebRTC, the web application interacts with web browsers, allowing it to utilise and control the real-time browser function. The WebRTC web application also interacts with the browser, using WebRTC and other standardised APIs, both proactively and reactively. Thus, the WebRTC API has to have a wide set of functions, such as encoding/decoding capabilities negotiation, media control, selection and control etc. What is the most important fact concerning WebRTC  is that it creates a real-time flow of data which allows direct communication between two browsers without any other intermediaries along the path. 
+
+ Signaling 
+The basic idea that lies behind the design of WebRTC is that it specify how to control the media plane, while leaving the signalling plane as much as possible to the application layer. The reasons behind this is the fact that different application might have a preference in using different standardised singnaling protocols. 
+
+The most important information that necessitates to be exchanged is represented by session description and it identifies the transport and the media type, along with all the media configuration parameters necessary to create a media path. The IETF is standardising the JavaScript Session Establishment Protocol JSEP which  provides the necessary interface 
+ to manage the negotiated local and remote session descriptions. Moreover, in this context the application receives all the responsibility for driving the singling state machine. In fact, instead of simply forwarding to the remote side the messages emitted from the browser, the application must call the right APIs at the right times to convert the sessions descriptions. 
+
+WebRTC API 
+The W3c WebRTC API allows a JavaScript application to exploit the novel browser’s real time abilities. Moreover, all media and data streams are encrypted and using real-time browser function  allows the application to establish the necessary audio, video, and data channels. 
+
+To prevent eavedropping, tampering, or message forgery to the datagram transport offered by User Datagram Protocol (UDP), the Datagram Transport Layer Security (DTLS) was designed which is based on the stream oriented Transport Later Security (TLS) protocol and provides similar security guarantees. The DTLS connection between two WebRTC clients is made by self-signed certificates and these certificates cannot be used to authenticate the peer. 
+
+Furthermore, the IETF works on selecting a minimum set of mandatory to support audio and video codecs for ensuring a baseline level of interoperability between different real-time browser function implementations. The mandatory are Opus (RFC6716) and G.711 and they implement audio codecs, not video codecs. 
+
+The API was designed to be based on three main concepts: MediaStream, PeerConnection, and DataChannel. 
+
+MediaStream 
+
+A MediaStream is an abstract representation of an actual stream of data of audio and/or video and it manages actions such as displaying content, recording it, sent it to a remote peer. 
+
+A LocalMediaStream is a media stream from a local media-capture device. The application must request access from the user to create and use a local stream specifying the type of data. Moreover, the devices selector in the browser interface serves as the mechanism for drafting or denying access. If the application is done, it could revoke its own access by calling the stop( ) function on the LocalMediaStream. 
+
+Media-plane signaling is carried out of band between the peers. The Secure Real-time Transport Protocol (SRTP) and the RTP Control Protocol (RTCP) is used to transport media data. DTLS is used for SRTP key and association management. 
+
+
+PeerConnection 
+
+This type of connection permits to users to share and exchange information directly, browser to browser. It represents an interconnection with the remote peer, which is usually another instance of the same JavaScript application running at the remote end. A scripting code helps at coordinating communications. If a peer connection is established, then media stream can be sent directly to the remote browser. 
+
+In addition, the Session Traversal Utilities for NAT (STUN) protocol (RFC5389) allows a host application to discover the present of a network address translator on the network. Furthermore, it obtains the allocated public IP and port tuple for the current connection, but it must have assistance from a configured, STUN server which resides on the public network. The Traversal Using Relays around NAT (TURN) protocol (RFC5766) allows a host behind a NAT to obtain a public IP address and port a relay server residing on the public internet. Moreover, the host can receive media from any peer. 
+
+As I presented, the PeerConnection mechanism uses STUN and TURN servers, together with ICE protocol, allowing UDP- based media streams traverse NAT boxes and firewalls. ICE acts like a security guarantee, and in the same time it allows the browsers to discover enough information about the topology of the network. 
+
+The signalling messages are fed into the receiving PeerConnection upon arrival. The APIs send signalling messages that most application will treat as opaque blobs. However, these signalling messages have to be moved in a secure and efficient manner to the other peer. 
+
+Data Channel 
+The DataChannel API is designed for browsers in order to allow them to exchange generic data in a bidirectional peer-to-peer fashion. The standardisation work within the IETF has reached a general consensus on the usage of the Stream Control Transmission Protocol (SCTP) enclosed in DTLS to handle non media data types. The circuit presented above provides a NAT traversal solution, confidentiality, and source authentication. Furthermore, using this method the transport of data works smoothly with the parallel media transports. SCTP has been chosen because it supports numerous streams and it provides the possibility of opening several independent streams towards a peering SCTP endpoint. Each stream actually represents a unidirectional logical channel providing the notion of in-sequence delivery. A message sequence can be sent either ordered or unordered and the message delivery  order is maintained only for all ordered messages sent on the same stream. Even though, the DataChannel API is designed as a bundle of an incoming and an outgoing SCTP stream. The DataChannel setup is carried out when the CrateDataChannel( ) function is called for the first time on an instantiated PeerConnection object. Each subsequent call to the CreateDataChannel () function just creates a new DataChannel within the existing SCTP association. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 WebRTC (Web Real-Time Communication) \cite{bergkvist2012webrtc} is a open-source project
 that does not need plugins to be used on browsers. It has a collection of communications
 protocols and APIs (application programming interfaces) that enable real-time
@@ -61,13 +137,41 @@ with JSONP \cite{ozses2009cross}.
 % ROS section
 \section{ROS}
 \label{sec:ros}
+	Since the scale and the goal of the robotics have constantly expend in the last few years, creating software for robots had become more complicated for software architectures. A large amount of research was made creating new software systems in response to the old weaknesses of other softwares. Moreover, new softwares were created to improve aspects that seem to be more significant than others in the design process. ROS represents a new framework for all type of robotics software. It does not act as a traditional operating system for management and scheduling. Instead, it uses a structured communication layer above the host operating systems of a heterogenous compute cluster. Initially designed to solve some specific issues in developing large-scale service robots, ROS generated a more comprehensive architecture which is far more  universal than the service-robot and mobile-manipulation fields. 
+	In the following line I will present the design goals of ROS trying to describe them in a detailed manner. 
 
-\subsection{ROS-Topics}
-\label{sub-sec:ros-topics}
-\subsection{ROS-Publishers}
-\label{sub-sec:ros-publisher}
-\subsection{ROS-Subscribers}
-\label{sub-sec:ros-subscribers}
+1.Peer-to-peer - Using a system constructed by using ROS represents a number of processes linked at runtime in a peer-to-peer topology. Since running a central server usually results in 
+unneeded traffic flowing across the wireless link, peer-to-peer together with “fanout” software modules, keep away completely this issues. This topology necessitates 
+a lookup mechanism (name service/ master) for allowing process to spot each other when running. 
+
+2. Multi-lingual - Since many professionals have diverse  linguistic preferences when programming which results in various compromises, ROS was designed with a neural structure and it sustains 4 languages: C++, Python, Octave, and LISP. Moreover, ROS deals with negotiation and configuration in XML-RPC and the implementation can be found in the most common languages. For a better using of each language, ROS is natively implemented in each target language.  Furthermore, to strengthen cross-language development, the operating system uses IDL (language neutral interface definition language) illustrate the messages sent between modules. This simple language-neutral interface permits the formation of messages and uses short text files to describer domains of each message. While messages are sent and received, ROS automatically manages to serialise and deserialised native implementations using code generators. Since the messages are automatically generated, it is easier list new sort of messages  and this represents a “time-saver” method for the programmer. 
+
+3. Tools-based - Instead of building a monolithic development and runtime environment, the designers of ROS have chosen  microkernel design with a relatively great number of small tools that build and tun various ROS components. Moreover, the components manage to fulfil different tasks, such as: visualize the peer-to-peer connection topology, measure bandwidth utilization, graphically plot message data etc. 
+
+4.Thin - Since almost all the robotics software projects incorporate drivers or algorithms easy to be used again, these cods became intertwined with the middleware. This makes more hard to release its functionality and re-use the code in a context independent of its original conditions. In contrast, ROS proposes an algorithm development which takes places having no dependence on the operating system. This “thin” ideology is possible by constructing modular builds inside the source of code tree. ROS places virtually all complexity in libraries and it creates small executables which expose library functionality to ROS. This allows an easier code extraction and a reuse beyond its original intent. 
+	Moreover, ROS re-operates code from various open-source projects, like drivers, navigation system, and simulators from the Player project. In each case, the operating system can be used to show different configuration options or to route data into and out. Furthermore, the operating system is self-executing by updating source code from external repositories, apply patches, and so on.
+
+5.Free and Open-Source - The designers of ROS made it publicly available for creating a fully open platform. The operating system can be used for not only for non-commercial projects, but also for commercial ones. It does not require for modules to be connected together in the same executable and by using inter-process communications it  allows the data to be transferred between the modules. 
+
+Presenting the design goals of the new operating system, my hope is that I offered a clear perspective about how ROS has improved the perspective over the robotics software. Moreover, I will try to highlight the fundamental concepts regarding the implementation of the system which are: nodes, messages, topics, and services. 
+
+Nodes represent processes which perform computation. Being designed as a modular system with a fine-grained scale, for ROS the term “node” could also be replaced with the term “software module”. Those nodes exchange information through messages which represent a strictly typed data structure. Standard primitive types (integer, floating point, boolean, etc.) are supported, as are arrays of primitive types and constants. Messages can be composed of other messages, and arrays of other messages, nested arbitrarily deep. To send a message, a node publish it to a given topic, which is simply a string like a map. The appropriate topic is automatically assigned to the specific node. However, since publishers and subscribers do not recognise each other, they could coincide to a single topic and, a node could publish or subscribe to numerous topics. Moreover, the “broadcast” routing scheme of publish-subscribe model does not represent a suitable method for synchronous transactions which can simplify the design of some nodes. This in ROS, is called a service which is defined by a string name and a pair of strictly typed messages. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 \section{JavaScript}
