@@ -4,42 +4,222 @@ In the previous chapter I presented a short introduction of the ENRICHME project
 Before I present a more detailed description of the main goals and the implementation of them I would like
 to discuss about the basic conecepts of working with robots and of the tehnologies and programing languages used.
 
-
-\section{Theoretical Background}
-\label{sec:tbkg}
-
-To begin with, I will make a description of the theory behind my work. This includes
-presenting the robot, the protocols used for real time comunication, taking news from the news sites
-and some security basic browser security.
-
-\subsection{Heart Rate}
-\label{sub-sec:tbkg-heartrate}
-
-
-
-\subsection{WebRTC}
-\label{sub-sec:tbkg-webRTC}
-WebRTC (Web Real-Time Communication) \cite{bergkvist2012webrtc} is a open-source project
-that does not need plugins to be used on browsers. It has a collection of communications
-protocols and APIs (application programming interfaces) that enable real-time
-communication between peers.
-That are two distinct APIs C++ API (fore browser developers) and Web API
-(for web developers, javascript API).
-I used the second one because is more portable
-between diferent types of systems.
-Even if WebRTC allow you to do file transfer, chat or desktop sharing 
-in my project is necesarly only the video coferencing feature used.
-For this to work you need a STUN server \cite{mahy2003network} and 
-for some networks a TURN server \cite{mahy2010traversal}.
-The tehnology used for creating the connexion peer-to-peer is represented
-by the ICE \cite{rosenberg2010interactive}.
-For transmiting the audio and video data webRTC use RTP (Real-Time Transport Portocol).
+% TODO: de vorbit despre Thiago si sensorii lui chair si senzorii mei
+\section{Thiago and sensors}
+\label{sec:thiago}
+%The main parts of Tiago robot are: RDB-D camera, Laptop tray, Stereo microphone, speaker, user panel,
+%7DoF arm, 5 finger underactuated hand, f/t sensor, lifting torso, differential-drive base, lasen range-finder.
+%It weighs 72 Kg and it can have a height between 110-145 which allows a fast or a slow movement. The mobile base of
+%Tiagoo is provided of a differential drive mechanism and contains an onboard computer, batteries, power connector,
+%a laser-range finder, three rear sonars, a user panel, a service panel and two Wifi to ensure wireless connectivity.
+%The torso of TIAGo is the structure that support the arm and the head of the robot and is equipped with an internal
+%lifter mechanism which allows changing the height of the robot. Furthermore, it provides an expansion panel and a laptop tray.
+%The arm of TIAGo is composed of 4 modules M90 and one 3 DoF wrist M3D as shown in figure 14.The force/torque sensor integrated
+%on the end-point of the wrist is a ATI mini45. TIAGo can be used with two different inter-changeable end-effectors:
+%the Hey5 hand and the PAL parallel gripper. The head of Tiago is equipped with a pan-tilt mechanism, i.e. 2 DoF,
+%and is equipped with stereo microphones, a speaker and a RGB-D camera. Furthermore, on top of the head there is a
+%flat surface with mounting points to let the user add new sensors or equipment.
 
 
-\subsection{RSS 2.0 Feed}
-\label{sub-sec:tbkg-rss}
+Tiago robot was developed by Pal Robotics. It has several sensors that
+allows it to navigate in the environment and interact with the humans. 
+The touch monitor has been integrated on the frontal part of the robot
+with a support provided of a rotational joint that allows the user to
+adjust the screen orientation. The RFID antenna to locate objects labelled
+with RFID tags has been also integrated on the frontal part of the robot,
+just below the touch monitor. The robot has also a lifting torso. In
+this way the touch monitor height can be adapted to the location of 
+the end users depending on their height and whether they are standing
+or sitting. Finally, the thermal camera has been integrated on top of
+the head to be as close as possible to the onboard RGB-D camera.
+
+
+% ROS section
+\section{ROS}
+\label{sec:ros}
+Since the scale and the goal of the robotics have constantly expend in the last few years, creating software
+for robots had become more complicated for software architectures. A large amount of research was made creating
+new software systems in response to the old weaknesses of other softwares. Moreover, new softwares were created
+to improve aspects that seem to be more significant than others in the design process. ROS represents a new framework
+for all type of robotics software. It does not act as a traditional operating system for management and scheduling.
+Instead, it uses a structured communication layer above the host operating systems of a heterogenous compute cluster.
+Initially designed to solve some specific issues in developing large-scale service robots, ROS generated a more comprehensive
+architecture which is far more  universal than the service-robot and mobile-manipulation fields. 
+In the following line I will present the design goals of ROS trying to describe them in a detailed manner. 
+\begin{enumerate}
+\item Peer-to-peer - Using a system constructed by using ROS represents a number of processes linked at runtime in
+a peer-to-peer topology. Since running a central server usually results in unneeded traffic flowing across the wireless
+link, peer-to-peer together with “fanout” software modules, keep away completely this issues. This topology necessitates 
+a lookup mechanism (name service/ master) for allowing process to spot each other when running. 
+
+\item Multi-lingual - Since many professionals have diverse  linguistic preferences when programming which results in various 
+compromises, ROS was designed with a neural structure and it sustains 4 languages: C++, Python, Octave, and LISP. Moreover,
+ROS deals with negotiation and configuration in XML-RPC and the implementation can be found in the most common languages.
+For a better using of each language, ROS is natively implemented in each target language.  Furthermore, to strengthen
+cross-language development, the operating system uses IDL (language neutral interface definition language)
+illustrate the messages sent between modules. This simple language-neutral interface permits the formation
+of messages and uses short text files to describer domains of each message. While messages are sent and received,
+ROS automatically manages to serialise and deserialised native implementations using code generators.
+Since the messages are automatically generated, it is easier list new sort of messages  and this represents
+a “time-saver” method for the programmer. 
+
+\item Tools-based - Instead of building a monolithic development and runtime environment, the designers of
+ROS have chosen  microkernel design with a relatively great number of small tools that build and tun various
+ROS components. Moreover, the components manage to fulfil different tasks, such as: visualize the peer-to-peer
+connection topology, measure bandwidth utilization, graphically plot message data etc. 
+
+\item Thin - Since almost all the robotics software projects incorporate drivers or algorithms easy to be used again,
+these cods became intertwined with the middleware. This makes more hard to release its functionality and re-use the code
+in a context independent of its original conditions. In contrast, ROS proposes an algorithm development which takes places
+having no dependence on the operating system. This “thin” ideology is possible by constructing modular builds inside the
+source of code three. ROS places virtually all complexity in libraries and it creates small executables which expose library
+functionality to ROS. This allows an easier code extraction and a reuse beyond its original intent. 
+Moreover, ROS re-operates code from various open-source projects, like drivers, navigation system, and simulators from the
+Player project. In each case, the operating system can be used to show different configuration options or to route data into
+and out. Furthermore, the operating system is self-executing by updating source code from external repositories, apply patches, and so on.
+
+\item Free and Open-Source - The designers of ROS made it publicly available for creating a fully open platform.
+The operating system can be used for not only for non-commercial projects, but also for commercial ones. It does 
+not require for modules to be connected together in the same executable and by using inter-process communications it
+allows the data to be transferred between the modules. 
+\end{enumerate}
+
+
+Presenting the design goals of the new operating system, my hope is that I offered a clear perspective about how ROS
+has improved the perspective over the robotics software. Moreover, I will try to highlight the fundamental concepts 
+regarding the implementation of the system which are: nodes, messages, topics, and services. 
+
+\textbf{Nodes} represent processes which perform computation. Being designed as a modular system with a fine-grained scale,
+for ROS the term “node” could also be replaced with the term “software module”. Those nodes exchange information
+through \textbf{messages} which represent a strictly typed data structure. Standard primitive types (integer, floating point,
+boolean, etc.) are supported, as are arrays of primitive types and constants. Messages can be composed of other messages,
+and arrays of other messages, nested arbitrarily deep. To send a message, a node publish it to a given \textbf{topic}, which is simply
+a string like a map. The appropriate topic is automatically assigned to the specific node. However, since \textbf{publishers} and
+\textbf{subscribers} do not recognise each other, they could coincide to a single topic and, a node could publish or subscribe to numerous
+topics. Moreover, the “broadcast” routing scheme of publish-subscribe model does not represent a suitable method for synchronous
+transactions which can simplify the design of some nodes. This in ROS, is called a \textbf{service} which is defined by a string name and
+a pair of strictly typed messages.
+
+For more detalis a good paper to read is find at \cite{quigley2009ros}.
+
+\section {WebRTC}
+\label{sec:webrtc}
+WebRTC (Web Real-Time Communication) \cite{bergkvist2012webrtc} allows browsers share and exchange
+information in real time operating by a peer-to-peer communication. This gave to web developers
+the opportunity to assemble real-time multimedia application without proprietary plug-ins.
+It extends the web browsing model. To set up and manage good and
+well grounded communication channel between web browsers,  the World Wide Web Consortium (W3C) and the Internet
+Engineering Task Force (IETF) are together defining the Java Script APIs (Application Programming Interfaces), the
+standard HTML5 tags, and the underlying communication protocols. Running on any device through secure access to the input
+peripherals, is the standardisation goal of WebRTC.
+
+\paragraph{Web Architecture}
+
+The web architecture is founded on a client-server paradigm. The browsers send an HTTP request for content
+to the web server and the server answer with the information that was demanded. The resources given by
+a server are correlated with an entity known by a URI or URL. Moreover, the server can set the JavaScript
+code in the HTML page it send back to the client. Users can interact with the code by user interface and
+browsers can interact with the code by using standard JavaScript APIs. 
+
+%WebRTC Architecture
+WebRTC introduces the peer-to-peer communication system between browsers and in this way it expands the
+client-server semantics. The most common WebRTC model extract its ingenuity from SIP (Session Initiation Protocol)
+Trapezoid (RFC3261) where both  browsers are running a web application downloaded from a different web server.
+To set up and put a stop to the exchange of information there are used singling messages which are transpired by
+HTTP or WebSocket protocol through web servers that can modify, translate, or manage them. Being considered a part
+of the application, the signalling between browser and server is not standardised in WebRTC. Moreover, a peer
+connection permits to the data to move along the browsers independent of servers. The two web servers can communicate
+using a standard signaling protocol such as SIP or Jingle. In WebRTC, the trapezoid transforms into a Triangle when both
+browsers are running the same web application. 
+
+\paragraph{WebRTC in the Browser}
+ 
+Through the standardised WebRTC, the web application interacts with web browsers, allowing it to utilise
+and control the real-time browser function. The WebRTC web application also interacts with the browser,
+using WebRTC and other standardised APIs, both proactively and reactively. Thus, the WebRTC API has to have
+a wide set of functions, such as encoding/decoding capabilities negotiation, media control, selection and 
+control etc. What is the most important fact concerning WebRTC  is that it creates a real-time flow of data 
+which allows direct communication between two browsers without any other intermediaries along the path. 
+
+
+\paragraph{Signaling} 
+The basic idea that lies behind the design of WebRTC is that it specify how to control the media plane, while leaving
+the signalling plane as much as possible to the application layer. The reasons behind this is the fact that different
+application might have a preference in using different standardised singnaling protocols. 
+
+The most important information that necessitates to be exchanged is represented by session description and it identifies
+the transport and the media type, along with all the media configuration parameters necessary to create a media path.
+The IETF is standardising the JavaScript Session Establishment Protocol JSEP which  provides the necessary interface 
+to manage the negotiated local and remote session descriptions. Moreover, in this context the application receives all
+the responsibility for driving the singling state machine. In fact, instead of simply forwarding to the remote side the
+messages emitted from the browser, the application must call the right APIs at the right times to convert the sessions descriptions. 
+
+
+\paragraph{WebRTC API }
+The W3c WebRTC API allows a JavaScript application to exploit the novel browser’s real time abilities. Moreover, all media
+and data streams are encrypted and using real-time browser function  allows the application to establish the necessary 
+audio, video, and data channels. 
+To prevent eavedropping, tampering, or message forgery to the datagram transport offered by User Datagram Protocol (UDP),
+the Datagram Transport Layer Security (DTLS) was designed which is based on the stream oriented Transport Later Security 
+(TLS) protocol and provides similar security guarantees. The DTLS connection between two WebRTC clients is made by 
+self-signed certificates and these certificates cannot be used to authenticate the peer. 
+Furthermore, the IETF works on selecting a minimum set of mandatory to support audio and video codecs for ensuring a 
+baseline level of interoperability between different real-time browser function implementations. The mandatory are Opus
+(RFC6716) and G.711 and they implement audio codecs, not video codecs. 
+The API was designed to be based on three main concepts: MediaStream, PeerConnection, and DataChannel. 
+
+\paragraph{MediaStream}
+A MediaStream is an abstract representation of an actual stream of data of audio and/or video and it
+manages actions such as displaying content, recording it, sent it to a remote peer. 
+A LocalMediaStream is a media stream from a local media-capture device. The application must request access
+from the user to create and use a local stream specifying the type of data. Moreover, the devices selector in the
+browser interface serves as the mechanism for drafting or denying access. If the application is done, it could
+revoke its own access by calling the stop( ) function on the LocalMediaStream. 
+Media-plane signaling is carried out of band between the peers. The Secure Real-time Transport Protocol (SRTP)
+and the RTP Control Protocol (RTCP) is used to transport media data. DTLS is used for SRTP key and association management. 
+
+
+\paragraph{PeerConnection}
+This type of connection permits to users to share and exchange information directly, browser to browser.
+It represents an interconnection with the remote peer, which is usually another instance of the same JavaScript
+application running at the remote end. A scripting code helps at coordinating communications. If a peer connection
+is established, then media stream can be sent directly to the remote browser. 
+In addition, the Session Traversal Utilities for NAT (STUN) protocol (RFC5389) allows a host application to
+discover the present of a network address translator on the network. Furthermore, it obtains the allocated
+public IP and port tuple for the current connection, but it must have assistance from a configured, STUN server
+which resides on the public network. The Traversal Using Relays around NAT (TURN) protocol (RFC5766) allows a host
+behind a NAT to obtain a public IP address and port a relay server residing on the public internet. Moreover,
+the host can receive media from any peer. 
+As I presented, the PeerConnection mechanism uses STUN and TURN servers, together with ICE protocol, 
+allowing UDP- based media streams traverse NAT boxes and firewalls. ICE acts like a security guarantee,
+and in the same time it allows the browsers to discover enough information about the topology of the network. 
+The signalling messages are fed into the receiving PeerConnection upon arrival. The APIs send signalling messages 
+that most application will treat as opaque blobs. However, these signalling messages have to be moved in a 
+secure and efficient manner to the other peer. 
+
+
+\paragraph{Data Channel}
+The DataChannel API is designed for browsers in order to allow them to exchange generic data in a bidirectional 
+peer-to-peer fashion. The standardisation work within the IETF has reached a general consensus on the usage of the
+Stream Control Transmission Protocol (SCTP) enclosed in DTLS to handle non media data types. The circuit presented
+above provides a NAT traversal solution, confidentiality, and source authentication. Furthermore, using this method
+the transport of data works smoothly with the parallel media transports. SCTP has been chosen because it supports 
+numerous streams and it provides the possibility of opening several independent streams towards a peering SCTP endpoint.
+Each stream actually represents a unidirectional logical channel providing the notion of in-sequence delivery. A message
+sequence can be sent either ordered or unordered and the message delivery  order is maintained only for all ordered messages 
+sent on the same stream. Even though, the DataChannel API is designed as a bundle of an incoming and an outgoing SCTP stream.
+The DataChannel setup is carried out when the CrateDataChannel( ) function is called for the first time on an instantiated
+PeerConnection object. Each subsequent call to the CreateDataChannel () function just creates a new DataChannel within the
+existing SCTP association.
+
+More details about the WebRTC \cite{loreto2014real}, STUN \cite{mahy2003network},TURN \cite{mahy2010traversal}, ICE \cite{rosenberg2010interactive}.
+
+
+\section{RSS 2.0 Feed}
+\label{sec:rss}
+
 RSS 2.0 (Really Simple Syndication) \cite{board2014rss} is know as a tpe of web feed \cite{downing2008web}.
-A web feed (news feed) is a data format to provide informations which frequently change their contents.
+A web feed (news feed) is a data format to provide information which frequently change their contents.
 It create a plublisher-subscribers system.The publisher create a web feed and the users subscribe to it.
 Mostly the rss feed is used for news media to send micro-news to their customers. with this tehnology you can
 create a news agregator where you have multiple rss feeds from different sites and you filter them for your users.
@@ -50,24 +230,12 @@ of the news sites and I wanted a big base of news. Because of the browsers same 
  I had to use an API that transform rss feed in jsonp.
 
 
-\subsection{Same Origin Policy}
-\label{sub-sec:tbkg-sameorigin}
+\paragraph{Same Origin Policy}
 Same Origin Policy \cite{network10same} is a concept used in web application security model. In browsers which respect this policy
 you are not allowed to use data in scripts from pages that do not have the same origin. This policy must be respect so you will not have
 malicious code running in your browser or your webpage. Origin is defined as concatanation of
 the protocol used, hostname and port of a website. You can bypass this restriction by using the cross-origin communication
 with JSONP \cite{ozses2009cross}.
-
-% ROS section
-\section{ROS}
-\label{sec:ros}
-
-\subsection{ROS-Topics}
-\label{sub-sec:ros-topics}
-\subsection{ROS-Publishers}
-\label{sub-sec:ros-publisher}
-\subsection{ROS-Subscribers}
-\label{sub-sec:ros-subscribers}
 
 
 \section{JavaScript}
@@ -90,8 +258,7 @@ than php. Another feature is that is more client-side than php. In the next subs
 some framework used in my developing.
 
 
-\subsection{JQuery}
-\label{sub-sec:javascript-jquery}
+\paragraph{JQuery}
 JQuery is a JavaScript library which make thinks like HTML (Hyper Text Makeup Language)
 document traversal and manipulation, event handling, animation, and Ajax more easy-to-use.
 It is compatible with most of browsers and also it has behind it a big comunity. I used
@@ -99,16 +266,14 @@ Jquery because it make the developing of websites fast and easy to understand by
 developers, but some parts of the code was done in pure JavaScript.
 
 
-\subsection{SOCKET.IO}
-\label{sub-sec:javascript-socket}
+\paragraph{SOCKET.IO}
 SOCKET.IO is a JavaScript library (frontend and backend APIs) used for making
 realiable real-time web application. You used it for making a connexion beetween
 the webpage given by the webserver to the backend server, mostly for message from
 backend server. It can use two methods. The first one used websockets that makes
 things fast and friendly with network bandwidth. Second it used pooling that is the
 clasic way to ask the server from time to time if it has something to send to you.
-\subsection{Sweet Alert 2}
-\label{sub-sec:javascript-swalert}
+\paragraph{Sweet Alert 2}
 Sweet Alert 2 is JavaScript library and also a css file, which make the alerts from
 the browser customizable. We need this library because the application is mostly
 used by old people we need to have alerts that have bigger text and are more center
@@ -116,8 +281,7 @@ in the webpage. Also for the call part you cand have multiple option for respond
 the alert.
 
 
-\subsection{Node.js}
-\label{sub-sec:javascript-node}
+\paragraph{Node.js}
 Node.js is open-source JavaScript run-time environment that allow to write server-side
 JavaScript code and it is saw as on of the fundamental elements of "JavaScript everywere"
 paradigm. This make the client-side code and server-side code to be write in the same
@@ -128,8 +292,7 @@ also as time of developing, and because is JavaScript there is easy for other de
 to use.
 
 
-\subsection{Roslibjs}
-\label{sub-sec:javascript-roslib}
+\paragraph{Roslibjs}
 Roslibjs is the standard JavaScript library for interacting with ROS systems from
 a browser. It connects with rosbridge trough WebSockets and has an API that cand let
 you do things like publishing, subscribing, calling services and most of the essential ROS
@@ -155,8 +318,7 @@ CPython, the reference implementation of Python, is free and open source softwar
 development model, as do nearly all of its alternative implementations. CPython is managed by the non-profit Python
 Software Foundation.
 " \cite{van2007python}
-\subsection{Rospy}
-\label{sub-sec:python-rospy}
+\paragraph{Rospy}
 Rospy is a Python client library that offer an API for interacting with ROS systems.
 It allows you to do interface with topics, services and parameters. The design of rospy
 is very easy for programers to use and take a less time in developing. This makes rospy
@@ -169,16 +331,14 @@ MongoDB \cite{chodorow2013mongodb} is a document-oriented and general-purpose da
 its documents are in fact BSONs (similar to JSONs) which are very easy to use in JavaScript and Python.
 Also MongoDB is know to be a scalable database, so it makes easy implementation of
 the chat part, where scalability is a must. On the server-side I used it for keeping
-the user credentials, informations, chat messages and connections list, on the robot-side
+the user credentials, information, chat messages and connections list, on the robot-side
 for keeping the news preferences in newspapers and news categories of the user. Because I use Node.js,
 but also Python, I had to use some libraries, that I will present next.
-\subsection{PyMongo}
-\label{sub-sec:mongo-py}
+\paragraph{PyMongo}
 PyMongo is a Python distribution that make a connexion between Pyhton and MongoDB. It is easy to use by
 developers and easy to understand. Also you can transform data recived from the database in dictionaries
 in Pyhton.
-\subsection{MongoDB Node.js Driver}
-\label{sub-sec:mongo-node}
+\paragraph{MongoDB Node.js Driver}
 For Node.js we have an official MongoDB driver that provides both callback and promise interaction.
 This driver is easy-to-use and easy-to-understand by all MongoDB users, because it use almost the
 the same interface.

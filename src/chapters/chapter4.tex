@@ -6,19 +6,84 @@ That is the reason why on robots you have buttons and the font-size bigger than 
 side of the page.
 
 
-\section{Call App}
+\section{Social Module User Interface}
 \label{sec:ui-callapp}
-The call app is separated in tree parts. First part is the home which contains a list
-of you connections and on client you have also the option to add new connections. If you
-press any of the names of the users in the list will pop-up a small window that contains
-information about the user and options like "message", "call", or "ok" ,that let you chose another
-user. If you press message you go to the chat part, which on robot has a keyboard in the
-language specific to the country of the robot that is almost half of the screen, a box that
-contains the messages between users and some specific buttons. First button give you more
-information about the remote user. The second one is button to get messages from the past.
-The third one is button to go back to home page. When the client side you have more space
-for messages.
+The SM is separated in three parts. First part is the home which contains a list
+of you connections. On client you have also the option to add new connections. If you
+press any of the users names in the list it will pop-up a small window that contains
+information about the user and options like :
 
+\begin{itemize}
+  \item Message - change page to chat part
+  \item Call - change page to video-conference part
+  \item Ok - close the pop-up
+\end{itemize}
 
-\section{News App}
+\paragraph{Chat}
+\label{sub-sec:ui-callapp-message} 
+\fig[height=0.2\textheight]{src/img/messageRobot.png}{img:message-robot}{Chat UI robot}
+\fig[height=0.2\textheight]{src/img/messageui.png}{img:message-client}{Chat UI client}
+The chat part on robot has a keyboard in a specific language(almost half of the screen),
+a box that contains the messages between users and three specific buttons:
+\begin{itemize}
+  \item First button - give you more information about the remote user
+  \item Get past messages - get messages from the past conversations
+  \item Go to home - change page to home page
+\end{itemize}
+The client side does not hava keyborad, therefore it has more space for messages.
+
+\paragraph{Video-conference}
+\label{sub-sec:ui-callapp-call} 
+\fig[height=0.2\textheight]{src/img/callRobot.png}{img:call-robot}{Call UI robot}
+\fig[height=0.2\textheight]{src/img/callClient.png}{img:call-client}{Call UI client}
+The video-conference part is almost the same on robot and client (the robot has the extra menu button on top).
+You have on top three buttons:
+\begin{itemize}
+  \item First button - provide information about the remote user
+  \item Home - change page to home page
+  \item Message - change page to chat part with the current remote user
+\end{itemize}
+Under them there are three more buttons specific to call. The three buttons are:
+\begin{itemize}
+  \item Call - start a call with the remote user
+  \item Accept - accept a receiving call
+  \item Hangup - reject a receiving call or hang-up the current call
+\end{itemize}
+First, only the call button is available. If you call someone it will be diabled and
+the hangup button will be activated. If your call is accepted nothing will happen to avability
+of buttons. If your call is rejected then a pop-up will apear saying that you call was rejected
+by the remote user and the avability of buttons it will be the one on the start. If you are reciving
+a call then the call button will go disabled and will have availabled the accept and hangup button.
+Under this buttons are your local video (your image from the camera, on the right) and remote video
+(remote user image from their camera, on the left)
+
+\section{News Module}
 \label{sec:ui-newsapp}
+\fig[height=0.2\textheight]{src/img/newsui.png}{img:news-ui}{News UI news}
+\fig[height=0.2\textheight]{src/img/prefferences.png}{img:prefferences-ui}{News UI prefferences}
+The NM has two parts: the first part where the news are showed to the user and and the second one
+where the user can change his prefferences about newspapars and categories of news. The News Module is
+presented only on robot side.
+
+\paragraph{News}
+\label{sub-sec:ui-newsapp-news}
+The news part has four buttons on top and the news content on the
+rest of the page. The buttons are: 
+\begin{itemize}
+  \item Previous button - change the current news content with the previous one content
+  \item Next button - change the current news content with the next one content
+  \item Read news button - makes the robot read your news content description
+  \item Prefferences button - change your page to prefferences where you can chose newspapers and
+  categories
+\end{itemize}
+
+\paragraph{Prefferences}
+\label{sub-sec:ui-newsapp-prefferences}
+The prefferences page has:
+\begin{itemize}
+  \item A list with newspapers that you can select because they are buttons. They have two colors
+  green for selected and yellow for unselected
+  \item A list with categories that you can select because they are buttons. They have two colors
+  green for selected and yellow for unselected
+  \item Back button - change your page with news page
+\end{itemize}

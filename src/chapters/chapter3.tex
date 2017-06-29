@@ -1,39 +1,262 @@
 \chapter{Architectural Overview}
 \label{chapter:archi}
+%TODO: mai mult de scris si incearca sa prezinti si architectural proiectului ENRICHME
 With a good understanding of basic concepts of the tehnology used we can go foward and
 talk about the architectural of the entire system. I will talk separetly the two apps.
 
+Before going into presentation of every module architecture, the ENRICHME project architecture
+must be understand.
 
-\section{Call App}
-\label{sec:callapp}
-\fig[height=0.5\textheight]{src/img/callApp.png}{img:call-app}{Call App}
-Call App is the part of the system which main ocupation is the social interaction between
-the robot users and their relatives seen as clients users, but you can also have this
-between robots users or clients users. The big system is represented in \labelindexref{Figure}{img:call-app}.
+
+\section{Social Module Architecture}
+\label{sec:socialmodule}
+\fig[height=0.3\textheight]{src/img/callApp.png}{img:call-app}{Social Module Architecture}
+The Social Module main objectif is the social interaction between the robot users and their relatives seen as clients users.
+Second objectifs are: interactions robot-robot or client-client, working under restrictive networks, performance of 
+the video-conference call.
+A visual representation of the system parts and comunications is \labelindexref{Figure}{img:call-app}.
+
+
 Let's start talking about the entire workflow of calling, but firstly
 we will use some notation: Alice for the client or robot that is starting the call and Bob for the client or robot reciving the
 call. If Alice wants to call Bob she cand do that only if he is online. If Bob is online than Alice send a message
-different from normal messages telling Bob that she wants to start a call. Now Bob can refuse the call and send back to
-Alice a reject message and then both stops for having a call or he can accept the call and send back to Alice a message
-telling that he accept the call. When Alice recive the message she create a RTC offer package (that include some
-basic networking information about Alice and maybe some ICE candidates) and send it to Bob, in the same she set 
+different from normal messages telling Bob that she wants to start a call containing also a RTC offer (includes some
+basic networking information about Alice and maybe some ICE candidates) in the same she set 
 her local description with this offer description and she starts to gather ICE candidates and send them to 
-Bob when she finds them. Bob recive the RTC offer , set his remote description with this offer description, and creates an
+Bob when she finds them.
+Now Bob can refuse the call and send back to Alice a reject message and then both stops for having a call or
+he can accept the call store de  and send back to Alice a message
+telling that he accept the call, set his remote description with the RTC offer description just received, and creates an
 RTC answer that has almost the same information as the offer, set this answer as his local description
 and send it to Alice, in the same time he starts to gather ICE candidates and send them to Alice.
-Alice recive the RTC answer and set it as remote description. After some ICE candidates changes between Alice and
+Alice recive the RTC answer and set it as remote description.
+
+After some ICE candidates changes between Alice and
 Bob if they do not find any matches for a RTC connection they will closed it. If they found they will go to connection
-established state and they will start to transmit audio/video data. They are tree types of connection posible.
+established state and they will start to transmit audio/video data. They are three types of connection posible.
 First one if Alice and Bob are in the same network or both have public ips they cand make a direct connection (r-c.1).
 Second one if Alice or Bob are under a different NAT network they can make a direct connection with the help of a STUN Server
 or they comunicate through a common TURN server (r-c.2 adn r-c.3). Third one if Alice and Bob are under a different NAT
 network and they do not have a common TURN server accesible but the servers are accesible between them they cand make
 a connection trought two servers (r-c.4). At one moment if Alice or Bob wants to end the call they send a stop message, After
-both close the connection. A perfect workflow is represented in \labelindexref{Figure}{img:call-AB1}.
-\fig[height=0.5\textheight]{src/img/ABCall.png}{img:call-AB1}{Alice-Bob call}
+both close the connection.
+%A perfect workflow is represented in \labelindexref{Figure}{img:call-AB1}.
+%\fig[height=0.5\textheight]{src/img/ABCall.png}{img:call-AB1}{Alice-Bob call}
 
-\subsection{Robots}
-\label{sub-sec:callApp-robots}
+
+
+The SM is divided in the next parts:
+\begin{itemize}
+  \item Backend server
+    \begin{itemize}
+        \item REST API -
+        offer services like creating a new user, adding new contacts to the contacts list of an user,
+        basics information about a user, authentification, tokens, old messages between users, contacts list
+        \item SOCKET.IO -
+        offer service like sending normal messages or special messages needed to make RTC connection
+        between users and keeping an online/offline track of the users
+    \end{itemize}
+  \item MongoDB database - store the collections that I use for the project .
+    In SM architecture the MongoDB
+    database is also on the backend server, but if the system can be implemented with the database
+    on another server or on multiple servers agregate for more stability and failure response.
+  \item STUN/TURN servers - used for making connections between users that transmit video/audion data.
+  \item Frontend - the web application.
+\end{itemize}
+
+
+
+\paragraph{Backend Server}
+The backend server is a Node.js server which runs on two ports: 80 for robot-side and 443 for client side with ssl certificate.
+It use MongoDB Node.js driver for connecting to MongoDB database. The commands are similar with the one MongoDB shell. 
+For the REST API part there are two types of request that contains a token (created with jsonwebtoken "jwtoken",
+that contains username, ObjectId) or not. These are the features you can use:
+\begin{enumerate}
+    \item Creating users - a HTTP/HTTPS POST message (no token) with all information about the user (username,
+    first name, last name, gender, user type, password). First it creates
+    the entry in credentials collections with the username and hash password after it use bcrypt-nodejs
+    hash function on the password, after succesful insert (if the username does not exist
+    in database) it get an ObjectId. It use the ObjectId with the outer datas from the message
+    and create an entry in users. After it return a succesful response.
+    \item Authentification - a HTTP/HTTPS POST message (no token) with username and password.
+    It use bcrypt-nodejs hash function on the password and verify it is the same hashpassword in credentials.
+    If is not the same it return  a error message, else it return the token.
+    \item Get information about users - A HTTP/HTTPS POST message (with token) with username
+    or user ObjectId. The server verify if the token is valid. If is valid it take from it information about
+    the user which made the request. After that it can easy look up if the usr from the token
+    is connected with the user in the request body. If they are connected then it return the information aboit him.
+    \item Add a new connection - A HTTP/HTTPS POST message (with token) with username.
+    The server verify if the token is valid. If is valid it take from it information about
+    the user which made the request. Afer it use this information to connect the two user in
+    the database (adding the usernames in connections_list array in connections_list collection)
+    \item Get the connections list - A HTTP/HTTPS GET message (with token). The server verify if the
+    token is valid. If is valid it take from it information about
+    the user which made the request. It use tis information for getting his
+    connections_list array in connections_list collection.
+\end{enumerate}
+For SOCKET.IO part there are two types of messages normal between users for the chat part and special messages
+for signaling in WebRTC. Both messages use token for authentification. The namespaces are:
+\begin{itemize}
+    \item /online - After a user use the REST APi for authentification and he receive the token it connect
+     to the server and send his token on the online namespaces to anounce that he is online.
+    The server anounce all his connections that are also online that the user has gone online on
+    the namespace \textbf{connection/online}. Also the server store in hashmap the socket id with the 
+    username as key and in another hashmap the username with socket id as key. When a user disconnect
+    from the socket the entries in the hashmap are deleted. Also their connection which are online are
+    anounce trough namespace \textbf{connection/offline} that the user has gone offline.
+    \item /getConnections - on this namespace the user send his token and it receive back the connections
+    that are online int that moment.
+    \item /message/post - on this namespace the user send his token, the message text and the destinatation username.
+    The server store the message and after that if the destiantion user is
+    online it send the message on namespace \textbf{message/receive}.
+    \item /message/get - on this namespace the user send his token, remote user, skip number, and limit number.
+    It receive back the last messages order by time between him and remote user
+    skining the skip number of messages in the limit of limit number.
+    \item videoCall/startCall - on this namespace the user send his token, remote user and RTC offer.
+    If the remote user is online the server send the remote user the message on the same namespace.
+    \item videoCall/startForceCall - similar to startCall, but used in special condition that I will talk later in this paper
+    \item videoCall/acceptCall - the same as startCall, but instead of RTc offer he has a RTC answer
+    \item videoCall/stopCall - the same as startCall, but it has not a RTC offer
+    \item videoCall/iceCandidate - the same as startCall, but instead of RTc offer he has a RTC ice candidate 
+    \item videoCall/restartIceOffer - the same as startCall, used for restaring ice gathering
+    \item videoCall/restartIceAnswer - the same as acceptCall, used for restaring ice gathering
+    \item videoCall/rejectCall - the same as stopCall
+    \item videoCall/forceRejectCall - the same as stopCall
+\end{itemize}
+
+
+Because of the online/offline feature implemented in SOCKET.IO this system is limited at only one backend sever.
+Changing this feature in MongoDB database but making more a pooling from the clients and robots will
+incrase the scability of the backend server, but also the will incrase the bandwidth used and
+decrease performance when the system has less number of users than 40000. Because this number will
+not be reach in the project ENRICHME I used this type of architectural that makes the implementation
+more easy to understand and developing. The backend server run on two ports 80 and 443.
+
+\paragraph{STUN/TURN servers}
+STUN/TURN servers are used for making connections between users that transmit video/audion
+data. Because of some policy of firewalls or proxy is best to have more of this types of servers.
+I used on made by me on the amazon coud system and a public one, but free, server from numb.viagenie.ca.
+The role of STUN is that the clients can discover their network information about them if they are
+under a NAT network. The TURN servers come in used when users can not make a direct connection and they
+react as a relay server for their data. The config file for my STUN/TURN server on Amazon Cloud is \labelref{here}{lst:stunturn-config}.
+
+\paragraph{Webpage application}
+%Robots
+The Webpage application for the Social Module is made with HTML/CSS and JavaScript.
+The SM design is modular with a central object which makes the connections betweens JavaScript modules.
+The name of the object is lic_comunicator.
+For integrating the webRTC and reuse of the code the thesis propose a new framework that provide
+a more simple interface for developers. The framework is represented by a single object called lic_call_object.
+This object use webRTC in background and has the next functions:
+\begin{itemize}
+    \item constructor - Takes two parameters: the remote user username and the lic_comunicator object
+    \item getLocalVideoPromise - Create and return the local video stream.
+    \item closeLocalVideo - Close the local video stream.
+    \item getRemoteVideoPromise - Return the remote video stream
+    \item call - Call the remote user
+    \item forceCall - the same as call, but this method force the remote user to answer.
+    \item accept - Accept the incoming call.
+    \item hangup - Close the video-conference
+    \item reciveHangup - the same as hangup.
+    \item resetCall - reset the object.
+    \item addIceCandidate - Add an ICE candidate gived as parameter to function to ice candidates pool.
+    \item setRemoteDescription - The description gived as parameter to function is seted as remote description.
+    \item reciveRemoteDescription -The description gived as parameter to function is stored inside object, but is not seted as remote description.
+    \item acceptIceRestart - accept and start an ICE gathering.
+    \item reciveRejectCall - Close the video-conference if the call is rejected by the remote user
+    \item rejectCall - Close the video-conference and send a reject message to remote user
+    \item destructor - destroy and free the object.
+\end{itemize}
+This module can be changed with another JavaScript module that provide the same functions which can use 
+a different tehnology than webRTC without affecting the rest of the app.
+Another JavaScript module proposed by this thesis is the lic_socket object, Its role is
+to comunicate with the backend server. It tuse the SOCKET.IO, but the
+tehnology can be changed without affecting the rest of the app. The object provide the next functions:
+\begin{itemize}
+    \item constructor - Takes two parameters: the backend server url and the lic_comunicator object and creates the object and starts a connection with the backend server.
+    \item emit - send the a JavaScript Object (given as the second parameter) to a namespace on the backend server (first parameter) and call a function (third parameter) on
+    the answer recived from the server.
+    \item close - close the connection with the backend server
+    \item Some event handler for messages recived from the server.
+        \begin{itemize}
+            \item recived message for the current user from another user
+            \item message about a user going online
+            \item message about a user going offline
+            \item a start call offer from another user
+            \item a force start call offer from another user
+            \item an accept for a start call offer
+            \item a stop call message
+            \item an remote ice candidate
+            \item a restart ice gathering offer
+            \item an accept for a restart ice gathering offer
+            \item a reject for a start call offer
+            \item a force reject for a start call offer
+        \end{itemize}
+\end{itemize}
+
+The lic_comunicator works only with messages sended to him with the help of his function addMessage. It was some variables:
+\begin{itemize}
+    \item socket  - lic_socket object type;
+    \item callObjects - an hashmap with lic_call_object where the key is the username of the remote user
+    \item currentState - the state of SM("chat", "video-conference", "login", "signup", "home", "outside"(outside of the SM))
+    \item currentRemoteUser - current remote user
+    \item connectionsList - an array with connections
+    \item token - the token given after authentification
+    \item selectedUser - the current user selected
+    \item backendServerUrl - the backend server URL
+\end{itemize}
+
+Every message sended to comunicator as type.The types are:
+\begin{itemize}
+            \item "remotevideo" - return the remote video stream
+            \item "onicecandidate" - send an ice candidate to the remote user
+            \item "localvideo" - return the local video stream
+            \item "callAction" - call the remote user
+            \item "forceCallAction" - force call the remote user
+            \item "acceptAction" - accept the incoming call
+            \item "hangupAction" - hangup the current video-confference
+            \item "callOffer" - sent a call offer
+            \item "forceCallOffer" - sent a force call offer
+            \item "acceptAnswer" - sent accept answer to a call
+            \item "sentHangup" - send a hangup message to remote user
+            \item "restartIceOffer" - send a restart ICE candidate gathering offer
+            \item "restartIceAnswer" - send a restart ICE candidate gathering answer
+            \item "reciveCall" - react to receiving a call offer
+            \item "reciveForceCall" - react to receiving a force call offer
+            \item "reciveAccept" - react to receiving a accept answer
+            \item "reciveStopCall" - react to receiving a hangup message from remote user
+            \item "reciveIceCandidate" - react to receiving a ICE candidate from remote user
+            \item "reciveRestartIceOffer" - react to receiving a restart ICE candidate gathering offer
+            \item "reciveRestartIceAnswer" - react to receiving a restart ICE candidate gathering answer
+            \item "reciveRejectCall" - react to receiving a reject message from remote user
+            \item "reciveForceRejectCall" - react to receiving a force reject message from remote user
+            \item "destructorCallObject" - destroy the lic_call_object of a user given
+            \item "constructorCallObject" - create the lic_call_object of a user given
+            \item "changePage" - change the page
+            \item "sentRejectCall" - send a reject message to remote user
+            \item "setCurrentState" - set the current state of the comunicator
+            \item "setCurrentRemoteUser" - set the current remote user
+            \item "getConnectionsList" - get the connections list from the backend server
+            \item "connectionOnline" - react to receiving a message about a user going online
+            \item "connectionOffline" - react to receiving a message about a user going offline
+            \item "selectUser" - select a user given
+            \item "addConnection" - add a new connection
+            \item "getRemoteUserInfo" - get informatoin about a user from backend server
+            \item "getUserInfo" - get the current user information from backend server
+            \item "sentMessage" - send a chat message to a remote user
+            \item "getMessages" - get old messages from a user 
+            \item "reciveMessage" - react to receiving a chat message from a remote user
+            \item "login" - login the user on backend server and set token with receiving token
+            \item "signup" - signup a new user on backend server
+            \item "setToken" - set a given token for the comunicator
+            \item "getToken" - get the comunicator token
+            \item "getParams" - get the params from param file of the SM
+            \item "getTranslation" - get the translations from the lang file of the SM
+            \item "goOnline" - send a message to the backend server for going online
+            \item "createSocket" - create a lic_socket object
+            \item "messageArray" - react to a sesion store array of messages for comunicator
+            \item "sentForceRejectCall" - sent a force reject to remote user
+\end{itemize}
 
 The robots have the webpage application implemented in the hmi_bridge ROS package that is part of
 the big project ENRICHME, so it does need any connection to frontend server for taking the html or
@@ -46,35 +269,15 @@ are the messages and the informaton about starting a call. First the messages, t
 r.1, if the other client or robot is online it will recive the message trough its r.1 or c.3 connection, if is
 offline than the message will be keep in the MongoDB database on the backend server (or in some specialised MongoDB
 database servers) and the recive users can request them lately trough REST API or SOCKET.IO connection. All the messages
-are keep in database, so the users cand see them lately. For the chat part the robots see their ROS parametre fro language
-and makes the right keyboard for the user. Secondly the call part, the robots use their r.1 for transmmiting 
+are keep in database, so the users cand see them lately. For the chat part the robots see their ROS parameter for language
+and makes the right keyboard for the user. Secondly the video-confference part, the robots use their r.1 for transmmiting 
 a call request or to respond a reciving call, and for all the other messages related to the call app, except
 audio/video data. You cand send audio/video over the r.1 connection but will have a bad performance because it
 used TCP not UDP and also it always go trough the server. Some difference between robots and normal clients are
 that robots do not used the camera so the video is taken trough a ROS topic for a RGB camera and you can not add
 connection on the robot because of the type of users that we have on this aprt of application.
 
-\subsection{Backend Server}
-\label{sub-sec:callApp-backend}
-The Backend Server offer a REST API and SOCKET.IO connections. The REST API offer services like
-creating a new user, adding new contacts to the contacts list of an user, basics information about
-a user, authentification for users, old messages between users, contacts list. The SOCKET.IO connections
-are used for sending normal messages between users or special messages needed to make RTC connection
-between users and to keep an online/offline track of the users. In my implementation the MongoDB
-database is also on the backend server, but if the system can be implemented with the database
-on another server or on multiple servers agregate for more stability and failure response. Because of
-the online/offline feature implemented in SOCKET.IO this system is limited at only one backend sever.
-Changing this feature in MongoDB database but making more a pooling from the clients and robots will
-incrase the scability of the backend server, but also the will incrase the bandwidth used and
-decrease performance when the system has less number of users than 40000. Because this number will
-not be reach in the project ENRICHME I used this type of architectural that makes the implementation
-more easy to understand and developing. The backend server run on two ports 80 and 443. I will discus
-the details in the next subsections.
-
-
-\subsection{Clients and Frontend Server}
-\label{sub-sec:callApp-clients}
-Because only clients use the frontend server I chose to talk about them togheter. The clients make
+Only clients use the frontend server. The clients make
 a request to the frontend server for the html and JavaScript scripts (c.1) and get a them as
 response (c.2) and after that they make the SOCKET.IO connection with the backend server (c.3).
 I made the design of the page in only one html file and in more JavaScript scripts so the users
@@ -89,27 +292,108 @@ server need a certificate and that is why the backend server is running on two p
 that are using an locahost webpage and 443 for the clients.
 
 
-\subsection{STUN/TURN servers}
-\label{sub-sec:callApp-stun-turn}
-STUN/TURN servers are used for making connections between users that transmit video/audion
-data. Because of some policy of firewalls or proxy is best to have more of this types of servers.
-I used on made by me on the amazon coud system and a public one, but free, server from numb.viagenie.ca.
-The role of STUN is that the clients can discover their network information about them if they are
-under a NAT network. The TURN servers come in used when users can not make a direct connection and they
-react as a relay server for their data.
+\section{News Module}
+\label{sec:newsmoduel}
+\fig[height=0.3\textheight]{src/img/newsApp.png}{img:news-app}{News Module Architecture}
+%\labelindexref{Figure}{img:news-app}.
+% MACRO Architecture
+The News Module has the functionality of a news agregator. This means it takes news
+form different newspapers and websites with the help of a web feed (in this case RSS feed).
+The difference is that it use an internet API like rss2json.com which transform the RSS feed
+XML information into a JSONP. The JSONP can bypass the same origin policy implemented in browsers and
+it is easier to use within the JavaScript language. This is necesary because most of the websites
+today have not yet implemented RSS feed over secure connections that can be reused in outher sites.
+The rss2json.com API is REST API that works with GET requests that contains RSS feed url, an API key and
+the maximum number of news to be taken. The response of this request is a JSONP message.
+The information recived then it can be used in two methods:
+\begin{itemize}
+    \item Writed on the webpage interface and after read by the user.
+    \item Read by the robot.
+\end{itemize}
+The news can be filtred by newspaper or category. This can be done from prefferences page inside the
+application. The part that takes the most amount of time on this module is to find good RSS feed and
+find them by category. After that you complete information about them in a json file. Also it must be done
+for every country-language. An example of language json file is \labelref{here}{lst:newsmodule-enGb}.
+In this files you also have the translations of buttons or the words used in the web application.
 
-\section{News App}
-\label{sec:newsapp}
-\fig[height=0.5\textheight]{src/img/newsApp.png}{img:news-app}{News App}
-\labelindexref{Figure}{img:news-app}.
-The news app is a news agregator which takes news from different newspapers websites and
-show them to the user in a nice format, with the option to be read by the robot. Because
-it is not posible anymore to take an rss feed with the same origin policy implemented in
-browsers I used an internet API call rss2json.com that takes rss feed you want and transform
-it in a JSONP format that can bypass this problem. The architecture is simple for this app.
-You have the newspapers web sites that are publishing rss feed, that also have different
-feeds for different categories. The rss2json.com API server, where you send your API KEY
-with the rss feed url and the number of news, is your providers of JSONP formated news.
-The robots recive the JSONP and show the news to the users with the option to be read loud
-by them. Users also have the option to change the categories of news they want and even the
-newspapers.
+% MICRO Architecture
+The News Module has two pages on the web application presented on the robot:
+\begin{itemize}
+    \item News Page - the user can read, listen or change the current news
+    \item Prefferences Page - the user can change their prefferences in newspapers and categories
+\end{itemize}
+The architecture is modular with an central object makes the connections between JavaScript modules.
+The object is called lic_news_object. Togheter with the JavaScript modules and json files creates a framework
+which can be used by other developers in creating their own news agregator.
+The lic_news_object has the next functions:
+\begin{itemize}
+    \item constructor - Create the object (no parameters)
+    \item getLang - It loads the language file given as parameter. This is necesary for translation of the page. It must be called
+    first because some news dynamic content can use translation of words and also contains the newspapaers and categories
+    you can access.
+    \item getParams - It loads a params file (json format) that contains the rss2json.com API address.  After it call a ROS service
+    that connect to the robot MongoDB databse to get the last prefferences for the current user.
+    \item getNews - It send request to rss2json.com API server for the today news that respect user prefferences.
+    \item writeNews - Write the content of the current news on the page.
+    \item news_prev(next) - Change the current news to the previous(next) news.
+    \item writeToChoseNews - Write on prefferences page the newspapaers green for selected, yellow fo unselected.
+    \item writeToChoseCategories - The same as writeToChoseNews but for categories.
+    \item news_addNews(remove_news) - Select (unselect) a newspaper given as parameter and send the current prefferences to a ROS topic.
+    \item news_addCategory(removeCategory) - Select (unselect) a category given as parameter and send the current prefferences to a ROS topic.
+    \item say - The robot read the current news
+\end{itemize}
+For the web application to work it need an intermediary system for connecting with the local MongoDB on the robot. This means it needs
+a service that can be call for infomation from the database and a subscriber that saves into database data publish on a ROS topic by the
+web application. The ROS service and the ROS subscriber are implemented in python and starts running in the same time as the web application.
+
+
+%The News Module is a news agregator which takes news from different newspapers websites and
+%show them to the user in a nice format, with the option to be read by the robot. Because
+%it is not posible anymore to take an rss feed with the same origin policy implemented in
+%browsers It is necasary to use an internet API like rss2json.com that takes rss feed and transform
+%it in a JSONP format that can bypass this problem.
+%You have the newspapers web sites that are publishing rss feed, that also have different
+%feeds for different categories. The rss2json.com API server, where you send your API KEY
+%with the rss feed url and the number of news, is your providers of JSONP formated news.
+%The robots recive the JSONP and show the news to the users with the option to be read loud
+%by them. Users also have the option to change the categories of news they want and even the
+%newspapers.
+
+%TODO : scriere architecture for heart rate
+\section{Heart Rate Bluetooth Sensor Module}
+\label{sec:heartmodule}
+Heart Rate Bluetooth Sensor Module (HRBSM) objectif is to publish in real-time data from the sensor into a ROS topic. This means
+that it is a ROS publisher. For getting data from the user it need to have access to a Bluetooth adapter. For this it use
+the gatttool, a UNIX tool. It scans for BLE devices, after a timeout it search into the list of devices and finds the
+heart rate sensor. It connects to it. It finds its characteristics and search for the address where the device is publishing
+its heart rate data. It subscribe to that address and send a message to the device to start giving information about the
+heart rate. On the address subscribed it creates a callback that takes the data and publish on a ROS topic togheter with
+the current UNIX time stamp. This is the normal workflow. The most amount of time the Module handle the problems that can raise
+trough the connection. For example:
+\begin{itemize}
+    \item The device disconect. The HRBSM try to recconect first if the problem persist it restart the adapter
+    and try to recconect again. If this also does not work it try to find if there are heart rate sensors close that it can connect. If they are not
+    than it announce on ROS topic for errors that can not find any sensors nearby.
+    \item The device is connected, but the HRBSM does not recive any data. It disconect and after it try to recconect.
+    \item The adapter go down. The HRBSM try to restart it. If it does not work it announce on a ROS topic.
+    \item The connection to the ROS topic break. The HRBSM try to remake the connection. If it does not work it stops and write on the log file the error.
+\end{itemize}
+Thesis provide a class which has the next functionalities:
+\begin{itemize}
+    \item constructor -
+        \begin{itemize}
+            \item create a GATTTOOL adapter
+            \item find the BLE device Address
+            \item start the adapter
+            \item connect to the device
+        \end{itemize}
+    \item start_notification -
+        \begin{itemize}
+            \item find device characteristics
+            \item find the heart rate characteristic address in characteristics
+            \item subscribe a callback function given as parameter to hear rate characteristic
+            \item start the notification process for heart rate characteristic
+        \end{itemize}
+    \item destroy - disconect device and stop the adapter
+    \item restart - restart the connection with the device and the subscribe process
+\end{itemize}

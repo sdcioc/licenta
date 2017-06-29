@@ -1,0 +1,68 @@
+\chapter{The News Module adaptation experiment}
+\label{chapter:experiment}
+\section{Experiment design and data analysis}
+\paragraph{TASK:}
+This experiment test the adaptation of the News Module. The adaptation consists in the changing of the font size of the news. 
+
+\paragraph{SENSORS:}
+In this experiment we are going to record the RGB, the thermal data, the GSR and the heart rate.
+From the RGB we are going to extract the AUs, and the blinking
+From the thermal data we are going to extract the temperature on the face of the participants
+We are going to extract the HEART RATE by using the physical sensor (it use the HRBSM)
+We are going to extract the GSR by using the physical sensor
+
+\paragraph{CONDITIONS:}
+It is going to have 6 conditions:
+\begin{enumerate}
+\item: Newspaper is read aloud by the robot (no interface shown)
+\item: Newspaper is shown on the torso of the robot (no sound) and no font size adaptation
+\item: Newspaper is shown on the torso of the robot (no sound) and the font size is adapted
+\item: Sound and visual interface with no font size adaptation
+\item: Sound and visual interface with font size adaptation
+\item: 5 with moving from 2m to 60cm
+\end{enumerate}
+This means 16 interactions per participant.
+
+
+\paragraph{QUESTIONNAIRES:}
+It is going to use the following questionnaires:
+\begin{itemize}
+\item MEQ -> to see if morningness/eveningness has an effect
+\item AASP -> to see if a person prefers visual or auditory
+\item EPQ -> to see if personality influences the distance where the person feels most comfortable
+\end{itemize}
+
+\paragraph{SCENARIO:}
+The experiment has the following scenario:
+It use an armchair and a Tiago robot.
+The robot will invite the person to take a seat on the armchair, it will give the instructions and then the experiment can begin.
+The robot will show/read the news at three different distances from the person:
+\begin{itemize}
+\item 2 m -> close phase of social distance
+\item 1.2 m -> far phase of personal distance
+\item 60 cm -> close phase of personal distance
+\end{itemize}
+At each distance the robot will display/read one news, once it finishes reading or the participant confirms that he/she finished reading the news it will move to the next distance.
+Once all the distances have been covered, the robot informs the participant that the experiment is over and he/she can leave the room.
+
+
+The idea of the experiment is to find out which is the best combination (distance, font size, speech/no speech) based on the sensory profile of the participant,
+its personality, and current internal state. 
+
+Each participant will test all conditions. In the end, we will need around 15-20 participants.
+
+\section{Thesis experiment implementation}
+\fig[height=0.4\textheight]{src/img/experiment.png}{img:experiment}{Experiment architecture}
+For the experiment the News Module has some difference:
+\begin{enumerate}
+    \item three new css files for every one of the three distances
+    \item getParams - subscribe to ROS topic /distance and every time the distance change
+    it verify in what range it is and loads the necessary css file. This adapt the interface to
+    the distance between user and robot.
+\end{enumerate}
+The HRBSM run on a ROS package. The heart rate sensor is place on the person.
+And the HRBSM use its specific address fro connectiong to it. With the help of the
+others module we take data like blinking, GSR, temperature of the face, and AUs.
+
+More experiemtns are currentyly done this will be submited on ICSR in one week.
+

@@ -1,0 +1,659 @@
+\chapter{Implementation}
+\label{chapter:implementation}
+The thesis present next the implementation of the modules.
+
+
+\section{Social Module Implementation}
+\label{sec:implementation-callapp}
+Implementation of the next parts will be explained:
+\begin{itemize}
+  \item MongoDB database
+  \item Backend server
+    \begin{itemize}
+        \item REST API
+        \item SOCKET.IO
+    \end{itemize}
+  \item Frontend
+\end{itemize}
+
+
+\subsection{MongoDB database}
+\label{sub-sec:implementation-callapp-mongo}
+I use a MongoDB version 3.2.10 database. I created a new database call LIC and inside it I use the next four collections:
+\begin{itemize}
+    \item credentials - This collection contains the username, the hash password, the ObjectID for the user and the time when
+    the acount was created. I used it for authentification.
+    \item users - This collection contains basic information about the users like : 
+        \begin{itemize}
+            \item ObjectId
+            \item Username
+            \item Gender
+            \item Last name
+            \item First Name
+            \item User Type - (Doctor, Client, Family)
+        \end{itemize}
+    \item connections_list - This collection contains the contacts of the users. The document has the next informations:
+        \begin{itemize}
+            \item ObjectId
+            \item Username
+            \item connections_list - An array of usernames of the contacts
+        \end{itemize}
+    \item messages - This collection contains the messages between users. The document contains the next informations:
+        \begin{itemize}
+            \item ObjectId
+            \item type - the type of the message (normal or special)
+            \item to_uid - The ObjectId of the user that received this message
+            \item from_uid - The ObjectId of the user that sended this message
+            \item to - The username of the user that received this message
+            \item from - The username of the user that sended this message
+            \item sentAt - time when it was sent
+            \item text - message text
+            \item roomId - A concatanation of ObjectIds of the users so it make easier to find messages betweens two users.
+        \end{itemize}
+\end{itemize}
+I will list the things I did for improving the performance of search/insert or making the code easy-to-understand in database:
+\begin{enumerate}
+    \item connections_list array with usernames makes more easy to use because I insert usernames not ObjectIds and it is more fast
+    for search because I get the entire array of connections with a single document and I can use directly the ObjectId provide
+    by the token, when a request is made.
+    \item username in users collections make easier to understand the code when I search after the username instead of ObjectId
+    \item roomId in messages boost a lot the performance because I search only after a single thing in the document that is also unqiue.
+    \item sentAt in messages help for sorting after time the messages
+    \item to_uid, from_uid in messages boost performance for searching the messages of an single user
+    \item hashpassword in credentials - not keeping the passwords in clear text
+\end{enumerate}
+
+
+\subsection{Backend server}
+\label{sub-sec:implementation-callapp-backend}
+
+The backend server is a Node.js server. It use the next Node.js modules:
+\begin{itemize}
+    \item Node.js MongoDB driver - used for connecting to MongoDB database
+    \item fs - filesystem for opening the ssl certificate and private key
+    \item express - for creating an express app (REST API)
+    \item http - for creating an http server
+    \item https - for crating an https server
+    \item cors - for cross origin implementation
+    \item socket.io - for SOCKET.IO implementation
+\end{itemize}
+
+The REST API implementation in pseudocod is:
+\begin{enumerate}
+    \item Creating users - 
+    \begin{lstlisting}
+        if (HasNotAllInformations) then return FAIL;
+        if (UsernameExists or UsernameNotValid) then return FAIL;
+        CreateCredentialsInDatabase();
+        CreateUserInformationInDatabase();
+        return SUCCESS;
+    \end{lstlisting}
+    \item Authentification -
+    \begin{lstlisting}
+        if (HasNotUsername or HasNotPassword) then return FAIL;
+        hashpassword := getFromCredentialsHashpassword(username);
+        if (hash(password) <> hashpassword) then return FAIL;
+        userinfo := getFromUsersInformation(username)
+        token := createToken(userinfo)
+        return token;
+    \end{lstlisting}
+    \item Get information about users - 
+    \begin{lstlisting}
+        if (invalidToken) then return FAIL;
+        if (HasNotRequestUsername and hasNotRequestObjectID) then return FAIL;
+        if (hasRequestObjectID) then requestUsername := getUsernameFromUsers(RequestObjectID);
+        else requestUsername := RequestUsername
+        if (requestUsername is not in getConnectionsFromConnectionsList(token_username))  then return FAIL;
+        userinfo := getFromUsersInformation(requestUsername)
+        return userinfo;
+    \end{lstlisting}
+    \item Add a new connection - 
+    \begin{lstlisting}
+        if (invalidToken) then return FAIL;
+        if (HasNotRequestUsername) then return FAIL;
+        requestUsername := RequestUsername
+        if (requestUsername is in getConnectionsFromConnectionsList(token_username))  then return FAIL;
+        addConnectionIntoConnectionsList(token_username, requestUsername);
+        addConnectionIntoConnectionsList(requestUsername, token_username);
+        return SUCCESS;
+    \end{lstlisting}
+\end{enumerate}
+For SOCKET.IO implementation in pseudocod is:
+\begin{itemize}
+    \item /online - user go online
+    \begin{lstlisting}
+        if (invalidToken) then return FAIL;
+        AddInHashMap(username_socket, (token_username, socket_id))
+        AddInHashMap(socket_username, (socket_id, username))
+        connections_list = getConnectionsFromConnectionsList(token_username)
+        for connection in connections_list do:
+            if (IsOnline(connection)) then
+                sendConnectionOnline(connection, token_username)
+        endfor
+        return SUCCESS;
+    \end{lstlisting}
+    \item disconnect - a used disconnect
+    \begin{lstlisting}
+        username = getValueHashMap(socket_username, socket_id)
+        deleteFromHashMap(username_socket, username)
+        deleteFromHashMap(socket_username, socket_id)
+        connections_list = getConnectionsFromConnectionsList(username)
+        for connection in connections_list do:
+            if (IsOnline(connection)) then
+                sendConnectionOffline(connection, username)
+        endfor
+
+    \end{lstlisting}
+    \item /getConnections - get connections list as an hashmap where value is true if the user is online or false if he is offline
+    \begin{lstlisting}
+        if (invalidToken) then return FAIL;
+        connections_list = getConnectionsFromConnectionsList(token_username)
+        responseData = new hashMap();
+        for connection in connections_list do:
+            if (IsOnline(connection)) then
+                AddInHashMap(responseData, (connection, true))
+            else
+                AddInHashMap(responseData, (connection, false))
+        endfor
+        return responseData;
+    \end{lstlisting}
+    \item /message/post - send a message
+    \begin{lstlisting}
+        if (invalidToken) then return FAIL;
+        connections_list = getConnectionsFromConnectionsList(token_username)
+        if (remote_user not in connections_list) then return FAIL;
+        saveToMessages(message)
+        if(IsOnline(remote_user))
+            sentreceiveMessage(remote_user, message)
+        return SUCCESS;
+    \end{lstlisting}
+    \item /message/get - get old messages
+    \begin{lstlisting}
+        if (invalidToken) then return FAIL;
+        connections_list = getConnectionsFromConnectionsList(token_username)
+        if (remote_user not in connections_list) then return FAIL;
+        messages = getFromMessages(token_username, remote_user, skip, limit)
+        return messages;
+    \end{lstlisting}
+    \item videoCall/startCall , videoCall/startForceCall ,videoCall/acceptCall , videoCall/stopCall,
+    videoCall/iceCandidate, videoCall/restartIceOffer, videoCall/restartIceAnswer,
+    videoCall/rejectCall, videoCall/forceRejectCall. - special messages for WebRTC
+    \begin{lstlisting}
+        if (invalidToken) then return FAIL;
+        connections_list = getConnectionsFromConnectionsList(token_username)
+        if (remote_user not in connections_list) then return FAIL;
+        saveToMessages(message)
+        if(IsOnline(remote_user))
+            sentSpecialMessage(remote_user, message)
+        return SUCCESS;
+    \end{lstlisting}
+\end{itemize}
+
+
+
+\subsection{Frontend}
+\label{sub-sec:implementation-callapp-frontend}
+The thesis presents the important objects implementation in pseudocod. The other implementation are simple and can
+be easy understand after a simple look over the code.
+First object is the lic_call_object:
+\begin{itemize}
+    \item constructor - create the object
+    \begin{lstlisting}
+        setComunicator(comunicator)
+        setRemoteUsername(remote_user)
+        setIceServers(STUN/TURN servers)
+        setRTCOfferOptions(audio and video)
+        setGetUserMediaConstraints(audio and video) //robot only audio
+        setHasDoneIceRestart(false)
+        setRTCPeerConnection(null);
+        setLocalStream(null)
+        setRemoteSteam(null)
+        setRemoteDescription(null)
+    \end{lstlisting}
+    \item getLocalVideoPromise - Create and return the local video stream.
+    \begin{lstlisting}
+        if(hasLocalStream) then return LocalStream;
+        stream = createLocalStream() //getUserMedia(UserMediaConstraints) //on robot create canvas from ros topic image data
+        setLocalStream(stream)
+        return stream;
+    \end{lstlisting}
+    \item closeLocalVideo - Close the local video stream.
+    \begin{lstlisting}
+        if(hasNotLocalStream) then return FAIL;
+        setLocalStream(null)
+        return SUCCESS;
+    \end{lstlisting}
+    \item getRemoteVideoPromise - Return the remote video stream
+    \begin{lstlisting}
+        while(hasNotRemoteStream) wait;
+        return RemoteStream;
+    \end{lstlisting}
+    \item call - Call the remote user
+    \begin{lstlisting}
+        if (hasRTCPeerConnection) then return FAIL;
+        RTCPeerConnection = new RTCPeerConnection(IceServers)
+        addStream(RTCPeerConnection, LocalStream)
+        RTCOffer = createRTCOffer(RTCPeerConnection, RTCOfferOptions)
+        setLocalDescription(RTCPeerConnection, RTCOffer_description)
+        SendMessageComunicator(Comunicator, 'callOffer', RTCOffer_description)
+        return SUCCESS;
+    \end{lstlisting}
+    \item forceCall - the same as call, but instead of 'callOffer' it use 'forceCallOffer'.
+    \item accept - Accept the incoming call.
+    \begin{lstlisting}
+        if (hasRTCPeerConnection) then return FAIL;
+        if (hasNotreceivedRemoteDescription) then return FAIL;
+        RTCPeerConnection = new RTCPeerConnection(IceServers)
+        addStream(RTCPeerConnection, LocalStream)
+        setRemoteDescription(RTCPeerConnection, receivedRemoteDescription)
+        RTCAnswer = createRTCAnswer(RTCPeerConnection)
+        setLocalDescription(RTCPeerConnection, RTCAnswer_description)
+        SendMessageComunicator(Comunicator, 'acceptAnswer', RTCAnswer_description)
+        return SUCCESS;
+    \end{lstlisting}
+    \item hangup - Close the video-conference
+    \begin{lstlisting}
+        if (hasNotRTCPeerConnection or hasNotRemoteConnection) then return rejectCall()
+        closeRTCPeerConnection()
+        setRTCPeerConnection(null)
+        resetCall()
+        SendMessageComunicator(Comunicator, 'sentHangup')
+        return SUCCESS;
+    \end{lstlisting}
+    \item receiveHangup - same as hangup
+    \begin{lstlisting}
+        closeRTCPeerConnection()
+        setRTCPeerConnection(null)
+        resetCall()
+        return SUCCESS;
+    \end{lstlisting}
+    \item resetCall - reset the object.
+    \begin{lstlisting}
+        setHasDoneIceRestart(false)
+        setRTCPeerConnection(null);
+        setLocalStream(null)
+        setRemoteSteam(null)
+        setRemoteDescription(null)
+        setHasRemoteConnection(false)
+        return SUCCESS;
+    \end{lstlisting}
+    \item addIceCandidate - Add an ICE candidate gived as parameter to function to ice candidates pool.
+    \begin{lstlisting}
+        while (hasNotRemoteConnection) wait;
+        addIceCandidate(RTCPeerConnection, received_ICE_candidate)
+        return SUCCESS
+    \end{lstlisting}
+    \item setRemoteDescription - The description gived as parameter to function is seted as remote description.
+    \begin{lstlisting}
+        setRemoteDescription(RTCPeerConnection, received_description)
+        setHasRemoteConnection(true)
+    \end{lstlisting}
+    \item receiveRemoteDescription  - The description gived as parameter to function is stored inside object, but is not seted as remote description.
+    \begin{lstlisting}
+        setreceivedRemoteDescription(received_description)
+        return SUCCESS;
+    \end{lstlisting}
+    \item acceptIceRestart - accept and start an ICE gathering.
+    \begin{lstlisting}
+        closeCurrentConnection()
+        setRemoteDescription(RTCPeerConnection, received_description)
+        setHasRemoteConnection(true)
+        RTCAnswer = createRTCAnswer(RTCPeerConnection)
+        setLocalDescription(RTCPeerConnection, RTCAnswer_description)
+        SendMessageComunicator(Comunicator, 'restartIceAnswer', RTCAnswer_description)
+        return SUCCESS;
+    \end{lstlisting}
+    \item receiveRejectCall - Close the video-conference if the call is rejected by the remote user
+    \begin{lstlisting}
+        receiveHangup()
+        setreceivedRemoteDescription(null)
+        return SUCCESS
+    \end{lstlisting}
+    \item rejectCall Close the video-conference and send a reject message to remote user
+    \begin{lstlisting}
+        SendMessageComunicator(Comunicator, 'sentRejectCall')
+        return SUCCESS
+    \end{lstlisting}
+    \item destructor
+    \begin{lstlisting}
+        hangup()
+        resetCall()
+        closeLocalVideo()
+        return SUCCESS;
+    \end{lstlisting}
+    \item event Handler ICE connection failed
+    \begin{lstlisting}
+        if(hasDoneICeRestart) then return null;
+        startICERestart()
+    \end{lstlisting}
+    \item startICERestart - start an ICE gathering
+    \begin{lstlisting}
+        makeRestartICEOfferOptions()
+        RTCOffer = createRTCOffer(RTCPeerConnection, restartIceOfferOptions)
+        setLocalDescription(RTCPeerConnection, RTCOffer_description)
+        SendMessageComunicator(Comunicator, 'restartIceOffer', RTCOffer_description)
+    \end{lstlisting}
+\end{itemize}
+Second object is lic_socket:
+\begin{itemize}
+    \item constructor - 
+    \begin{lstlisting}
+        setComunicator()
+        setBackendServer()
+        connectBackendServer()
+        setEventsHandlers()
+        return socket;
+    \end{lstlisting}
+    \item emit - implemented by SCOKET.IO.
+    \item close - implemented by SCOKET.IO.
+    \item Some event handler for messages received from the server.
+        \begin{itemize}
+            \item received message for the current user from another user
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'receiveMessage', received_message)
+            \end{lstlisting}
+            \item message about a user going online
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'connectionOnline', username)
+            \end{lstlisting}
+            \item message about a user going offline
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'connectionOffline', username)
+            \end{lstlisting}
+            \item a start call offer from another user
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'receiveCall', receivedRTCOffer)
+            \end{lstlisting}
+            \item a force start call offer from another user
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'receiveForceCall', receivedRTCOffer)
+            \end{lstlisting}
+            \item an accept for a start call offer
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'receiveAccept', receivedRTCAnswer)
+            \end{lstlisting}
+            \item a stop call message
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'receiveStopCall', username)
+            \end{lstlisting}
+            \item an remote ice candidate
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'receiveIceCandidate', received_iceCandidate)
+            \end{lstlisting}
+            \item a restart ice gathering offer
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'receiveRestartIceOffer', receivedRTCOffer)
+            \end{lstlisting}
+            \item an accept for a restart ice gathering offer
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'receiveRestartIceAnswer', receivedRTCAnswer)
+            \end{lstlisting}
+            \item a reject for a start call offer
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'receiveRejectCall', username)
+            \end{lstlisting}
+            \item a force reject for a start call offer
+            \begin{lstlisting}
+                SendMessageComunicator(Comunicator, 'receiveForceRejectCall', username)
+            \end{lstlisting}
+        \end{itemize}
+\end{itemize}
+
+Last the lic_comunicator:
+\begin{itemize}
+            \item "remotevideo" - return the remote video stream
+            \begin{lstlisting}
+                return getRemoteVideoPromise(callObjects(username))
+            \end{lstlisting}
+            \item "onicecandidate" - send an ice candidate to the remote user
+            \begin{lstlisting}
+                socket.emit("videoCall/iceCandidate", IceCandidate, ack);
+            \end{lstlisting}
+            \item "localvideo" - return the local video stream
+            \begin{lstlisting}
+                return getLocalVideoPromise(callObjects(username))
+            \end{lstlisting}
+            \item "callAction" - call the remote user
+            \begin{lstlisting}
+               getLocalVideoPromise(callObjects(username))
+               call(callObjects(username))
+            \end{lstlisting}
+            \item "forceCallAction" - force call the remote user
+            \begin{lstlisting}
+               getLocalVideoPromise(callObjects(username))
+               forceCall(callObjects(username))
+            \end{lstlisting}
+            \item "acceptAction" - accept the incoming call
+            \begin{lstlisting}
+               getLocalVideoPromise(callObjects(username))
+               accept(callObjects(username))
+            \end{lstlisting}
+            \item "hangupAction" - hangup the current video-confference
+            \begin{lstlisting}
+               hangup(callObjects(username))
+            \end{lstlisting}
+            \item "callOffer" - sent a call offer
+            \begin{lstlisting}
+                socket.emit("videoCall/startCall", RTCOffer, ack);
+            \end{lstlisting}
+            \item "forceCallOffer"  - sent a force call offer
+            \begin{lstlisting}
+                socket.emit("videoCall/startForceCall", RTCOffer, ack);
+            \end{lstlisting}
+            \item "acceptAnswer" - sent accept answer to a call
+            \begin{lstlisting}
+                socket.emit("videoCall/acceptCall", RTCAnswer, ack);
+            \end{lstlisting}
+            \item "sentHangup" - send a hangup message to remote user
+            \begin{lstlisting}
+                socket.emit("videoCall/stopCall", username, ack);
+            \end{lstlisting}
+            \item "restartIceOffer"  - send a restart ICE candidate gathering offer
+            \begin{lstlisting}
+                socket.emit("videoCall/restartIceOffer", RTCOffer, ack);
+            \end{lstlisting}
+            \item "restartIceAnswer" - send a restart ICE candidate gathering answer
+            \begin{lstlisting}
+                socket.emit("videoCall/restartIceAnswer", RTCAnswer, ack);
+            \end{lstlisting}
+            \item "receiveCall" - react to receiving a call offer
+            \begin{lstlisting}
+                case: currentState == callState
+                if(InVideoConference or remote_user <> from_username or reject) {
+                    SendMessageComunicator(Comunicator, sentRejectCall, from_username)
+                } else {
+                    receiveRemoteDescription(callObjects(username), RTCOffer)
+                }
+                case: currentState <> callState
+                if(reject) {
+                    SendMessageComunicator(Comunicator, sentRejectCall, from_username)
+                } else {
+                    makeMessageArray('changePage','getTranslation','forceCallAction')
+                    store(messageArray)
+                    changePageToCall();
+                }
+            \end{lstlisting}
+            \item "receiveForceCall"  - react to receiving a force call offer
+            \begin{lstlisting}
+                case: currentState == callState
+                if(InVideoConference or remote_user <> from_username) {
+                    SendMessageComunicator(Comunicator, sentRejectCall, from_username)
+                } else {
+                    receiveRemoteDescription(callObjects(username), RTCOffer)
+                    SendMessageComunicator(Comunicator, acceptAction, from_username)
+                }
+                case: currentState <> callState
+                SendMessageComunicator(Comunicator, sentRejectCall, from_username)
+            \end{lstlisting}
+            \item "receiveAccept" - react to receiving a accept answer
+            \begin{lstlisting}
+                setRemoteDescription(callObjects(username), RTCAnswer)
+            \end{lstlisting}
+            \item "receiveStopCall" - react to receiving a hangup message from remote user
+            \begin{lstlisting}
+                receiveHangup(callObjects(username))
+            \end{lstlisting}
+            \item "receiveIceCandidate" - react to receiving a ICE candidate from remote user
+            \begin{lstlisting}
+                addIceCandidate(callObjects(username), receivedIceCandidate)
+            \end{lstlisting}
+            \item "receiveRestartIceOffer" - react to receiving a restart ICE candidate gathering offer
+            \begin{lstlisting}
+                acceptIceRestart(callObjects(username), RTCOffer)
+            \end{lstlisting}
+            \item "receiveRestartIceAnswer" - react to receiving a restart ICE candidate gathering answer
+            \begin{lstlisting}
+                setRemoteDescription(callObjects(username), RTCAnswer)
+            \end{lstlisting}
+            \item - The one related to video-conference part are similar with ones above
+            %\item "receiveRejectCall" - react to receiving a reject message from remote user
+            %\item "receiveForceRejectCall" - react to receiving a force reject message from remote user
+            \item "changePage" - change the page
+            \begin{lstlisting}
+                makeCurrentStateDivInvisible()
+                makeNextStateDivVisible()
+            \end{lstlisting}
+            %\item "sentRejectCall" - send a reject message to remote user
+            %\item "setCurrentState" - set the current state of the comunicator
+            %\item "setCurrentRemoteUser" - set the current remote user
+            \item "getConnectionsList" - get the connections list from the backend server
+            \begin{lstlisting}
+                connections_list = ajax.request(username)
+                write connections as buttons in html
+            \end{lstlisting}
+            %\item "connectionOnline" - react to receiving a message about a user going online
+            %\item "connectionOffline" - react to receiving a message about a user going offline
+            \item "selectUser" - select a user given
+            \begin{lstlisting}
+                userinfo = ajax.request(username)
+                sweetalert2(userinfo)
+            \end{lstlisting}
+            %\item "addConnection" - add a new connection
+            %\item "getRemoteUserInfo" - get informatoin about a user from backend server
+            %\item "getUserInfo" - get the current user information from backend server
+            %\item "sentMessage" - send a chat message to a remote user
+            %\item "getMessages" - get old messages from a user 
+            %\item "receiveMessage" - react to receiving a chat message from a remote user
+            %\item "login" - login the user on backend server and set token with receiving token
+            %\item "signup" - signup a new user on backend server
+            %\item "setToken" - set a given token for the comunicator
+            %\item "getToken" - get the comunicator token
+            %\item "getParams" - get the params from param file of the SM
+            %\item "getTranslation" - get the translations from the lang file of the SM
+            %\item "goOnline" - send a message to the backend server for going online
+            %\item "createSocket" - create a lic_socket object
+            %\item "messageArray" - react to a sesion store array of messages for comunicator
+            %\item "sentForceRejectCall" - sent a force reject to remote user
+\end{itemize}
+
+
+
+
+The client problems were mostly because it need a secure connection so it must have ssl certificates. The robot problem was that it does not have a webcam.
+I used an asus camera connected to the robot. The image of the camera was published on a ROS topic. On the lic_call_object I subscribe to that topic
+and  create canvas and I use captureStream() for creating a stream.
+For pop-up windows it use sweet alert 2.
+
+
+\section{News Module Implementation}
+\label{sec:implementation-newsapp}
+For the NM the thesis presents the lic_news_object implementation:
+\begin{itemize}
+    \item getLang - loads the language file
+    \begin{lstlisting}
+        LoadJSON(lang_file)
+        setNewspapers(lang_file.news)
+        setCategories(lang_file.categories)
+        setTranslations(lang_file.translations)
+        setButtonsText(lang_file.buttons)
+    \end{lstlisting}
+    \item getParams - loads the param file
+    \begin{lstlisting}
+        LoadJSON(param_file)
+        setBackendServer(lang_file.apiServer_url)
+        callRosService(MongoNews)
+        setChosenNewspapers(MongoNews.news)
+        setChosenCategories(MongoNews.categories)
+    \end{lstlisting}
+    \item getNews - It send request to rss2json.com API server for the today news that respect user prefferences.
+    \begin{lstlisting}
+        for category in categories:
+            for newspaper in newspapers:
+                if(category in chosenCategories and newspaper in ChosenNewspapers)
+                    news = ajax.request(BackendServer, newspapers[category].link)
+                    pushInArray(toWriteNews, news)
+    \end{lstlisting}
+    \item news_addNews(remove_news) - Select (unselect) a newspaper given as parameter and send the current prefferences to a ROS topic.
+    \begin{lstlisting}
+        ChosenNewspapers.push(news) //remove
+        puplishROSTopic(ChosenNewspapers + chosenCategories);
+    \end{lstlisting}
+\end{itemize}
+
+
+\section{Heart Rate Bluetooth Sensor Module}
+\label{sec:implementation-heartrate}
+The HRBSM use a python module called pygatt which use the UNIX tools called
+gatttool and hciconfig.
+
+The module contains a class (HEART_RATE_DEVICE) for working with the device:
+\begin{itemize}
+\item constructor
+\begin{lstlisting}
+    SetTheBluettohInterfaceUsed()
+    SetDeviceName()
+    SetBLEAddressType()
+    createGATTTOOLAdapter(BluetoothInterface)
+    devices = adapter.scanBLEDevices()
+    find (DeviceName in devices)
+    SetDeviceAddress()
+    StartAdapter()
+    ConnectToDevice()
+\end{lstlisting}
+
+\item start_notification
+\begin{lstlisting}
+    SetNotificationCallback(callback_function)
+    characteristics = getCharacteristicsFromDevice()
+    find (heart_rate_characteristic in characteristics)
+    subscribeNotificationCallback(heart_rate_characteristic_address)
+    startTheNotificationProcess() //write on bit in a register
+\end{lstlisting}
+
+\item restart
+\begin{lstlisting}
+    If (deviceConnected and receivingDataOnsubscriber) then return;
+    if (deviceConnected and NotReceivingDataOnSubscriber) {
+        If(counter > MAX_COUNTER) {
+            restartAdapter()
+            count = 0;
+        }
+        disconnectDevice()
+        reconnectDeivce()
+        start_notification()
+        counter = counter + 1;
+        return
+    }
+    if(deviceNotConnected) {
+        connectDevice()
+        start_notification()
+        return
+    }
+\end{lstlisting}
+\end{itemize}
+
+The norification callback only post the data received from the sensor
+togheter with the UNIX timestamp on ROS Topic.
+
+ The pseudocod for the module is:
+\begin{lstlisting}
+    CreateROSTopicPublisher("heartrate")
+    InitROS(Node("talker_heartrate"))
+    HRD = CreateObject(HEART_RATE_DEVICE)
+    start_notification(HRD, notification_callback)
+    while (TRUE) {
+        sleep(30)
+        restart(HRD)
+    }
+\end{lstlisting}
+

@@ -1,0 +1,32 @@
+\chapter{Conclusion and future work}
+\label{chapter:conclusion}
+The thesis implement three modules on the project ENRICHME which are currently used.
+Over this it provides three frameworks which can be used by developers in other
+project making the implementation easier. The experiment is also an framework
+for testing the adaptation of your application.
+
+The three JavaScript frameworks are:
+\begin{enumerate}
+    \item lic_socket_object - a signaling API for comunicating with the backend server
+    using a countinous connection. This is an alternative for REST API, in case you want
+    an app more interactiv
+    \item lic_call_object - a video calling API over webRTC which does not contains
+    the hard to understand architectural of webRTC. This handle inside the errors where
+    the problems which can raise when a peer-to-peer connection is created. Also the API
+    has few command and very easy to understand for futher developing
+    \item lic_news_object - a news agregator API which pass the security problems of rss
+    and transform them into JSON format easier for developers to use without any need
+    of conversions.
+\end{enumerate}
+
+The implementation of this modules over ROS makes incrase their portability and open
+a field on using WebRTC protocol on robots.
+
+\paragraph{Future Works}
+The future works for the modules:
+\begin{itemize}
+\item Social Module will be to implement the WebRTC for ROS on C++ and Python, and creating an TURN server which works over proxy networks. 
+\item News Module will be to implement an stand-alone open-source rss2json.com API, and doing some adaptaion for the categories of the news or newspaper.
+\item Heart Rate Bluetooth Sensor Module transform it into a more generic module, not only for heart rate, and not only for BLE device
+\item The experiment to be run also for the other parts of the ENRICHME project.
+\end{itemize}

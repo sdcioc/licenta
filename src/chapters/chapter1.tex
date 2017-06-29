@@ -1,0 +1,210 @@
+\chapter{Introduction}
+\label{chapter:introduction}
+%"
+%Human-robot interaction (HRI) for socially assistive
+%robotics has received much attention in recent years.
+%Researchers are trying to develop autonomous systems that
+%are capable of natural interaction with humans, that can learn
+%from their past experiences, and can adapt their behavior
+%based on the reaction of the person they interact with.
+%All this is done so that robots can be accepted as companions
+%for people that need special care (e.g., individuals with
+%cognitive and/or physical impairments). The robots can
+%provide monitoring, and help, they can alert
+%the family in case of emergencies, and never get tired.
+
+
+%This thesis is part of the Horizon2020 ENRICHME
+%European project, whose purpose is to develop a socially
+%assistive robot for elderly with mild cognitive impairment
+%(MCI) to help them remain active and independent for longer
+%and to enhance their quality of life. The project has partners
+%from Italy, United Kingdom, France, Netherlands, Poland,
+%and Greece. The system is going to be tested in Ambient
+%Assisted Living (AAL) laboratories and in elderly housing.
+%The AAL laboratories are Fondazione Don Carlo Gnocchi,
+%in Milano, Italy, and Stichting Smart Homes in the
+%Netherlands. In both facilities 15 older people will take part
+%in the testing phase. The elderly caring facilities are Lace
+%Housing Ltd, in the United Kingdom, Osrodek Pomocy
+%Spolecznej in Poland, and Aktion Licenced Elderly Care
+%Units in Greece. In each of the three sites 9 elderly will
+%interact with the robot.
+%The people that can participate in testings need to have
+%over 65 years old, they have to been given the diagnostic of
+%MCI by a neuropsychologist or to be identified with mild
+%cognitive dementia on the MME score. Another aspect
+%considered is the independence in executing basic activities
+%for daily living assessed through Barthel ADL index.
+%And lastly, the people need to be living in one of the studied
+%facilities.
+
+%" \cite{agrigoroaie2016developing}
+
+%In the last few years, a large number of research has been made in order to develop a framework for a behavior
+%control architecture that can provide customised interaction between a robot and a human being. Researchers are
+%more and more focused on human-robot interaction. The main goal of research is to create independent
+%systems that are capable of natural interaction with humans, that are able to understand human’s emotions and personality,
+%and can behave appropriately in a social context. Concerning the elderly people and people who need special care,
+%robots can become helpful companions that can provide monitoring and assistance. 
+%Researchers have been develop different systems for people needing physical, emotional and cognitive assistance.
+%A group of researchers presented a new system based on the socially assistive robotics that aims to provide a
+%customized help protocol through motivation, encouragements, and companionship to users suffering from cognitive
+%impairment using music. However, few researchers concentrated their attention on developing system that can adapt
+%to human’s profile. The project ENRICHME aims to develop a behavioural control architecture that episodic memory,
+%learning, and adaptation to the social context. The project has partners from Italy, United Kingdom, France, Netherlands,
+%Poland, and Greece. The AAL laboratories are Fondazione Don Carlo Gnocchi, in Milano, Italy, and Stichting Smart Homes in the Netherlands. 
+%The testings are designed for people over 65 years old suffering for mild cognitive impairment. Another criteria is e independence in
+%executing basic activities for daily living assessed through Barthel ADL index. 
+%Taking into consideration, the feedback given by by the elderly and their families and caregivers, specific needs have been identified
+%such as calling somebody in case of an emergency, reminding elderly about the medication, monitoring the environment and suggesting improvements,
+%monitor health state etc. The project propose a system that is able to provide personalised interaction with the person and adopt its behaviour,
+%the robot planning its actions based on the personality and needs of the person. \cite{agrigoroaie2016developing}
+
+This work is part of the Horizon2020 ENRICHME European
+project, whose purpose is to develop a socially assistive
+robot for elderly with mild cognitive impairment (MCI) to
+help them remain active and independent for longer and
+to enhance their quality of life. The project has partners
+from Italy, United Kingdom, France, Netherlands, Poland,
+and Greece. The system is going to be tested in Ambient
+Assisted Living (AAL) laboratories and in elderly housing.
+The AAL laboratories are Fondazione Don Carlo Gnocchi, in
+Milano, Italy, and Stichting Smart Homes in the Netherlands.
+In both facilities 15 older people will take part in the testing
+phase. The elderly caring facilities are Lace Housing Ltd, in
+the United Kingdom, Osrodek Pomocy Spolecznej in Poland,
+and Aktion Licenced Elderly Care Units in Greece. In each
+of the three sites 9 elderly will interact with the robot. The
+robot chosen for this project is the Tiago
+robot developed
+by PalRobotics. In each of the testing centers there is going
+to be one robot. The system is going to be simultaneously
+tested in all the testing sites. The people that can participate
+in testings need to have over 65 years old, they have to
+receive the diagnostic of MCI by a neuropsychologist or to
+be identfied with mild cognitive dementia on the MMSE
+score. Another aspect considered is the independence in
+executing basic activities for daily living assessed through
+Barthel ADL index. And lastly, the people need to be living
+in one of the studied facilities.
+“ENRICHME” refers to the goal of enriching the day-to-day experiences of 
+elderly people at home by means of technologies that enable health monitoring, complementary care and
+social support, helping them to remain active and independent for longer and to enhance their quality of life. 
+This work is focused on the time-extended personalized interaction while remaining in its own home
+environment.  The only comparable technology is computer-based interaction, which could provide
+personalized care but without the physical embodiment of a robot. The experiments proposed in this work
+address the key differences between robot-based and computer-based interaction. 
+\cite{agrigoroaie2016developing}
+
+
+
+\section{Thesis description and objectifs}
+This thesis contains the description and implementation of the three modules inside the ENRICHME project.
+Two of them are graphical user interface module which are used in the web application presented on the
+Thiago robot (the robot of the project). The other one is ROS module which takes data from an hardware
+sensor (Heart Rate Sensor) and publish it on a ROS topic so it can be accesible by other modules and used.
+
+For the first two the objectifs are:
+\begin{itemize}
+	\item User interface that can be understand even if the user have some issues of seing.
+	\item An intuitive and simple aplication that can be used first time without training.
+	\item Portable Aplication - can be used on multiple robots.
+	\item Adaptive Aplication - it adapts after the user.
+\end{itemize}
+
+For the ROS module the objectifs are:
+\begin{itemize}
+	\item Real-time - the module must work in real-time.
+	\item Interacting with other modules - it can interact with the other ROS modules.
+	\item Error handling - it handles some errors unrealistic
+\end{itemize}
+
+Before the implementation of this modules the ENRICHME project did not have many interaction with things
+outside the AAL laboratories and elderly housing. The Social Module allow 
+users to interact between them with chat messaging or video-conference calls. The News module takes news from
+internet sites and provides their content to the user. This modules is a step foward for introducing data
+outside the AAL and see their affects on the users. For the News Module the thesis contains an experiment
+on its adaptation and effects on humans.
+All the interface modules must be compatible in all the language used in the project.
+
+
+\section{ENRICHME project}
+Improving the quality of life of the elderly and the less able people has been for a long time one of the main challenges for
+the professionals in robotics. But in the last few years, technological progress and the development of common software platforms
+started to have a great positive impact in this field. The European project ENRICHME which aims to better monitor and prolong the
+independent living of the old people has developed an integrated system that can substantially help at achieving this goal. 
+The project develops new technologies that enable health monitoring, complementary care and social support, helping elderly to
+remain active and independent for longer and to enhance their quality of life. More specific, the project tries to consolidate
+mobile robots within a smart-home environment o provide new Active and Assisted Living (AAL) services for the older person.
+Moreover, the project tries to combine ambient intelligence (smart home sensors and services), robot intelligence(HRI, robot sensors and services)
+and social intelligence (networked care, medical interface). ENRICHME system uses technological solutions and it mostly focuses on the integration
+of smart-home and robot sensors for human and object localisation, activity monitoring and detection of abnormal behaviours. The forth most important
+aspects of the project are:
+\begin{enumerate}
+	\item Distributed architecture for Ambient Assisted Living (AAL)  services based on ROS2; 
+	\item Probabilistic solution for object localisation with a mobile robot based on RFID technology 
+	\item Vision-based approach for estimating the level of activity of a person;
+	\item Entropy-based system for detecting anomalous motion patterns at home;
+\end{enumerate}
+
+\section{Related work }
+\paragraph{ENRICHME}
+In the following lines I will try to present the work related with the ENRICHME program focusing first on the state of the art on AAL,
+and second on the Radio Frequency Identification. Ambient Assisted Living aims to provide new technologies for helping people to remain
+independent, based on ambient intelligence. The goal is to create infrastructures for life scenarios. For instance, the ALL architecture
+introduces the CASAS “smart home in a box” which is a smart home design that is easy to install and provides smart home capabilities out
+of the box with no customisation or training. \cite{cook2013casas} This allows smart home technologies to achieve its benefits at a large scale. CASAS has
+three main conceptual levels. First, the physical layer and the lowest level contains hardware components including sensors and actuators
+and its architecture utilizes a Zigbee wireless mesh which communicates directly with the hardware components. Second, the middleware layer 
+is governed by a publish/subscribe manager. Moreover, this paradigm acts as a memory system, the manager providing named broadcast channels
+that allow component bridges to publish and receive messages. In the end, an application layer lies on the top which allows control to move
+down from the application layer to the physical components that automate the action. In Europe, one of the most important framework is UniversAAL
+an open platform intended to facilitate the development, distribution, and deployment of technological 
+solutions for ALL. It consists of an extensive set of resources (some are software and some are models/architectures) aimed to benefit end users
+(i.e., assisted persons, their families, and caregivers), authorities with responsibility for AAL, and organizations involved in the development
+and deployment of AAL services. The resources are classified into three main groups: runtime support, development support, and community support.
+UniversAAL offers a semantic and distributed software platform designed to ease the development of integrated AAL applications. It makes use of
+a complementary middle complementary middleware, called open- HAB3, to control various domestic sensors. \cite{ferro2015universaal}
+Radio Frequency Identification (RFID) are a common and useful tool in recent AAL systems. These tools are used to locate
+a human or an object within indoor environments. However, this is only possible by caring a small, inexpensive tag.
+RFID localization is an interesting technology that uses classical techniques such as Time of Arrival, Time Difference 
+of Arrival, Received Signal Phase or Trilateration, based on radio-frequency propagation models, including physical aspects of RFID communication. \cite{bouchard2014human} 
+There are various approaches for locating an object in an environment. Huiting and other professionals propose statistical models of a tag detection event itself. \cite{huiting2013exploiting} 
+Moreover, Soltani and Motamed propose proximity-based methods of creating, sharing, exchanging and managing the building information throughout the lifecycle among
+all stakeholders. \cite{soltani2013neighborhood}
+
+Even though a lot of methods have been proposed, RFID technology is more helpful when it is necessary
+to monitor an activity. Most of the research have concluded that accelerometers have been widely considered as practical sensors
+for wearable devices to measure and assess physical activity of people. Ravi and others concluded that activities can be recognized with
+fairly high accuracy using a single triaxial accelerometer. Activities that are limited to the movement of just hands or mouth (e.g brushing)
+are comparatively harder to recognize using a single accelerometer worn near the pelvic region. \cite{ravi2005activity} Atallah uses a light- weight earworn accelerometer
+to categorize the daily activities of people into four levels: very low (e.g., sitting), low (e.g., reading), medium (e.g., preparing food), and iv)
+high (e.g., sports). However, using video-based approaches are less intrusive and efficient solutions to analyse human activity. The market offers
+also some benefits for video based approaches since we have observed a decrease in the prices for video cameras and there is a growing interest of
+video-based methods to provide a smart environment for the elderly. Pal and Abhayaratne propose a framework with two different variants of the motion
+features captured from two camera angles and classifies them into different activity levels using neural networks.  \cite{pal2015video} Optical flow vectors are used to detect
+regions on the image that represents a motion. Furthermore histograms of oriented gradients features are extracted in these regions and finally,
+a neural network is trained to classify the level of activity. However, this came with one inconvenient the noise of the optical flow, and thus,
+extracting histograms of oriented gradients features can be expensive. The ENRICHME project has a different approach detecting the activity level
+of the person by analysing the global and local motion of the whole body and of some body parts. 
+It is also very important to assess the overall motion behaviour of the person over extended period of times.
+In some cases, the detection of anomalous activity levels could indicate different health conditions. 
+Different states of agitation could show dementia or cognitive impairments. For example, Elderly individuals and dementia
+patients commonly experience disrupted sleep-wake cycles, which may lead to psychomotor agitation, confusion, and wandering.
+Sundowning syndrome, which encompasses many of these behaviours, is characterized by a temporal pattern in the severity of symptoms,
+usually expressed as worse during the late afternoon or evening. This could easily be observed in motor activity level and circadian rhythms. \cite{bedrosian2013sundowning}  
+However, the research on this subject is quite limited to research on animals and there are few examples of this syndrome monitoring on real patients. 
+A couple of solutions based on motion trackers were proposed. Aran and others have adopted a cross-entropy metrics method to evaluate the capability of
+a model of predicting behavioural changes, defining an abstract layer to create a common ground for different sensor configurations. \cite{aran2016anomaly} This approach has
+inspired the method used by ENRICHME project. 
+
+
+
+
+
+
+
+
+
+

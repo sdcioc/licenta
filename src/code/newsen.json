@@ -1,0 +1,134 @@
+{
+    "translations" : {
+        "buttons" : {
+            "Previous"       : "Previous",
+            "Next"           : "Next",
+            "Say"            : "Read News",
+            "Preferences"    : "Preferences",
+            "Back"           : "Back",
+            "ShowNews"       : "Show News",
+            "ShowCategories" : "Show Categories"
+        },
+        "category" : {
+            "sport"      : "sport",
+            "poltics"    : "politics",
+            "world"      : "world",
+            "economy"    : "economy",
+            "culture"    : "culture",
+            "technology" : "technology"
+        },
+        "text" : {
+            "news"       : "News",
+            "catagories" : "Categories"
+        },
+
+        "details" : {
+            "author"  : "Author: ",
+            "title"   : "Title: ",
+            "content" : "Content: "
+        }
+    },
+    "news" : {
+        "guardian" : {
+            "img" : "images/news_logo/guardian.png",
+            "name" : "The Guardian",
+            "thumbnail" : "no"
+        },
+        "telegraph" : {
+            "img" : "images/news_logo/telegraph.png",
+            "name" : "The Telegraph",
+            "thumbnail" : "no"
+        },
+        "independent" : {
+            "img" : "images/news_logo/independent.png",
+            "name" : "The Independent",
+            "thumbnail" : "no"
+        }
+    },
+    "news_catagories" : {
+        "sport" : [
+            {
+                "link" : "https://www.theguardian.com/uk/sport/rss",
+                "parent" : "guardian"
+            },
+            {
+                "link" : "http://www.telegraph.co.uk/sport/rss.xml",
+                "parent" : "telegraph"
+            },
+            {
+                "link" : "http://www.independent.co.uk/sport/rss",
+                "parent" : "independent"
+            }
+        ],
+        "poltics" : [
+            {
+                "link" : "https://www.theguardian.com/uk/rss",
+                "parent" : "guardian"
+            },
+            {
+                "link" : "http://www.telegraph.co.uk/news/rss.xml",
+                "parent" : "telegraph"
+            },
+            {
+                "link" : "http://www.independent.co.uk/news/uk/politics/rss",
+                "parent" : "independent"
+            }
+        ],
+        "world" : [
+            {
+                "link" : "https://www.theguardian.com/world/rss",
+                "parent" : "guardian"
+            },
+            {
+                "link" : "http://www.telegraph.co.uk/news/rss.xml",
+                "parent" : "telegraph"
+            },
+            {
+                "link" : "http://www.independent.co.uk/news/world/rss",
+                "parent" : "independent"
+            }
+        ],
+        "economy" : [
+            {
+                "link" : "https://www.theguardian.com/uk/business/rss",
+                "parent" : "guardian"
+            },
+            {
+                "link" : "http://www.telegraph.co.uk/business/rss.xml",
+                "parent" : "telegraph"
+            },
+            {
+                "link" : "http://www.independent.co.uk/news/business/rss",
+                "parent" : "independent"
+            }
+        ],
+        "culture" : [
+            {
+                "link" : "https://www.theguardian.com/uk/culture/rss",
+                "parent" : "guardian"
+            },
+            {
+                "link" : "http://www.telegraph.co.uk/culture/rss.xml",
+                "parent" : "telegraph"
+            },
+            {
+                "link" : "http://www.independent.co.uk/arts-entertainment/rss",
+                "parent" : "independent"
+            }
+        ],
+        "technology" : [
+            {
+                "link" : "https://www.theguardian.com/uk/technology/rss",
+                "parent" : "guardian"
+            },
+            {
+                "link" : "http://www.telegraph.co.uk/science/rss.xml",
+                "parent" : "telegraph"
+            },
+            {
+                "link" : "http://www.independent.co.uk/life-style/gadgets-and-tech/news/rss",
+                "parent" : "independent"
+            }
+        ]
+    }
+}
